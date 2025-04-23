@@ -1,46 +1,47 @@
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import emmanuelProfile from "../assets/emmanuel_profile.jpg";
 
 const ProfilePage = () => {
   const authorData = {
-    name: "Alex Morgan",
-    title: "Senior Tech Journalist & Web Developer",
-    bio: "With over 10 years of experience in tech journalism and web development, I've dedicated my career to exploring emerging technologies while helping businesses establish powerful online presences. My background in computer science and digital media allows me to bridge the gap between technical concepts and accessible content.",
+    name: "Emmanuel Muuna",
+    title: "Web Developer at Dive Tech",
+    bio: "I'm a passionate web developer with expertise in creating modern, user-friendly websites and applications. I specialize in frontend development using React and backend integration with Node.js and PostgreSQL. My goal is to build digital solutions that not only look great but also deliver exceptional user experiences.",
     skills: [
-      "Web Development", "Content Strategy", "UX Design", 
-      "Technology Research", "Digital Marketing", "SEO"
+      "Web Development", "React", "Node.js", 
+      "UI/UX Design", "Database Management", "RESTful APIs"
     ],
     education: [
       {
-        degree: "M.S. Computer Science",
-        institution: "Stanford University",
-        year: "2015"
+        degree: "B.Sc. Computer Science",
+        institution: "University of Technology",
+        year: "2020"
       },
       {
-        degree: "B.A. Digital Media",
-        institution: "University of California, Berkeley",
-        year: "2013"
+        degree: "Full-Stack Web Development",
+        institution: "Tech Bootcamp Academy",
+        year: "2021"
       }
     ],
     experience: [
       {
-        position: "Senior Tech Journalist",
-        company: "Dive Tech",
-        period: "2018 - Present",
-        description: "Leading tech content strategy, researching emerging technologies, and developing high-quality articles on various tech subjects."
-      },
-      {
         position: "Web Developer",
-        company: "TechSolutions Inc.",
-        period: "2015 - 2018",
-        description: "Designed and developed custom websites and web applications for clients across various industries."
+        company: "Dive Tech",
+        period: "2022 - Present",
+        description: "Developing responsive websites and web applications using modern JavaScript frameworks. Leading frontend development and implementing database solutions."
       },
       {
-        position: "Digital Content Specialist",
-        company: "Future Media Group",
-        period: "2013 - 2015",
-        description: "Created technology-focused content and managed digital marketing campaigns for tech companies."
+        position: "Junior Developer",
+        company: "Digital Solutions Agency",
+        period: "2020 - 2022",
+        description: "Created websites for small to medium businesses, implemented e-commerce solutions, and managed client websites."
+      },
+      {
+        position: "Freelance Web Designer",
+        company: "Self-employed",
+        period: "2018 - 2020",
+        description: "Designed and developed websites for local businesses and organizations while completing education."
       }
     ],
     services: [
@@ -113,7 +114,7 @@ const ProfilePage = () => {
               className="w-48 h-48 rounded-full overflow-hidden border-4 border-accent/50 shadow-xl"
             >
               <img 
-                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&h=256&q=80" 
+                src={emmanuelProfile} 
                 alt={authorData.name} 
                 className="w-full h-full object-cover"
               />
