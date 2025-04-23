@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import FeaturedArticles from "@/components/FeaturedArticles";
 import CategoriesShowcase from "@/components/CategoriesShowcase";
 import LatestArticles from "@/components/LatestArticles";
+import ServicesSection from "@/components/ServicesSection";
 import NewsletterSignup from "@/components/NewsletterSignup";
 
 const Home = () => {
@@ -18,6 +19,7 @@ const Home = () => {
       
       <HeroSection />
       <FeaturedArticles />
+      <ServicesSection />
       <CategoriesShowcase />
       <LatestArticles />
       <NewsletterSignup />

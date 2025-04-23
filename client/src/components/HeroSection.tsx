@@ -71,15 +71,11 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <Link href="#featured">
-            <a className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg">
-              Explore Articles
-            </a>
+          <Link href="#featured" className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg">
+            Explore Articles
           </Link>
-          <Link href="#categories">
-            <a className="bg-transparent hover:bg-white/20 text-white border border-white font-bold py-3 px-8 rounded-lg transition-colors duration-300">
-              Browse Categories
-            </a>
+          <Link href="#categories" className="bg-transparent hover:bg-white/20 text-white border border-white font-bold py-3 px-8 rounded-lg transition-colors duration-300">
+            Browse Categories
           </Link>
         </motion.div>
         
@@ -89,10 +85,8 @@ const HeroSection = () => {
           animate={{ y: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
         >
-          <Link href="#featured">
-            <a className="text-white/80 hover:text-white">
-              <i className="fas fa-chevron-down text-2xl"></i>
-            </a>
+          <Link href="#featured" className="text-white/80 hover:text-white">
+            <i className="fas fa-chevron-down text-2xl"></i>
           </Link>
         </motion.div>
       </div>

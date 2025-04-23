@@ -84,6 +84,11 @@ const Header = ({ isSearchOpen, setIsSearchOpen }: HeaderProps) => {
                 </Link>
               </li>
               <li>
+                <Link href="/profile" className="font-medium hover:text-primary dark:hover:text-accent transition-colors">
+                  Profile
+                </Link>
+              </li>
+              <li>
                 <Link href="/contact" className="font-medium hover:text-primary dark:hover:text-accent transition-colors">
                   Contact
                 </Link>
