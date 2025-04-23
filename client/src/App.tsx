@@ -7,6 +7,7 @@ import Category from "@/pages/Category";
 import Article from "@/pages/Article";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
+import Profile from "@/pages/Profile";
 import Login from "@/pages/admin/Login";
 import Dashboard from "@/pages/admin/Dashboard";
 import CreatePost from "@/pages/admin/CreatePost";
@@ -29,6 +30,7 @@ function Router() {
           <Route path="/article/:slug" component={Article} />
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
+          <Route path="/profile" component={Profile} />
           <Route path="/admin" component={Dashboard} />
           <Route path="/admin/login" component={Login} />
           <Route path="/admin/create" component={CreatePost} />

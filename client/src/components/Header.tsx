@@ -112,7 +112,7 @@ const Header = ({ isSearchOpen, setIsSearchOpen }: HeaderProps) => {
             </button>
             
             {/* User profile */}
-            <Link href="/admin/login">
+            <Link href="/profile">
               <div className="h-8 w-8 rounded-full bg-primary dark:bg-accent text-white flex items-center justify-center">
                 <i className="fas fa-user-circle"></i>
               </div>
@@ -143,6 +143,9 @@ const Header = ({ isSearchOpen, setIsSearchOpen }: HeaderProps) => {
               </Link>
               <Link href="/contact" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">
                 Contact
+              </Link>
+              <Link href="/profile" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">
+                Profile
               </Link>
               <div className="px-3 py-2">
                 <div className="font-medium mb-1">Categories</div>
