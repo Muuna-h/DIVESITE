@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { siteConfig } from "../config";
 
 const Footer = () => {
   return (
@@ -6,24 +7,20 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           <div className="lg:col-span-2">
-            <h3 className="font-heading text-lg font-bold mb-4">About Dive Tech</h3>
+            <h3 className="font-heading text-lg font-bold mb-4">About {siteConfig.name}</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               A modern tech blog dedicated to exploring emerging technologies and innovations shaping our digital future. We provide tech news, insights, and web development services to help businesses grow online.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+              <a href={siteConfig.socialLinks.twitter} className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                 <i className="fab fa-twitter text-xl"></i>
                 <span className="sr-only">Twitter</span>
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                <i className="fab fa-facebook text-xl"></i>
-                <span className="sr-only">Facebook</span>
+              <a href={siteConfig.socialLinks.github} className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <i className="fab fa-github text-xl"></i>
+                <span className="sr-only">GitHub</span>
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                <i className="fab fa-instagram text-xl"></i>
-                <span className="sr-only">Instagram</span>
-              </a>
-              <a href="#" className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+              <a href={siteConfig.socialLinks.linkedin} className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                 <i className="fab fa-linkedin text-xl"></i>
                 <span className="sr-only">LinkedIn</span>
               </a>
@@ -138,15 +135,15 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start">
                 <i className="fas fa-envelope mt-1 mr-3 text-primary dark:text-accent"></i>
-                <span className="text-gray-600 dark:text-gray-400">contact@divetech.com</span>
+                <span className="text-gray-600 dark:text-gray-400">{siteConfig.contact.email}</span>
               </li>
               <li className="flex items-start">
                 <i className="fas fa-phone mt-1 mr-3 text-primary dark:text-accent"></i>
-                <span className="text-gray-600 dark:text-gray-400">+1 (555) 123-4567</span>
+                <span className="text-gray-600 dark:text-gray-400">{siteConfig.contact.phone}</span>
               </li>
               <li className="flex items-start">
                 <i className="fas fa-map-marker-alt mt-1 mr-3 text-primary dark:text-accent"></i>
-                <span className="text-gray-600 dark:text-gray-400">123 Tech Avenue, San Francisco, CA 94107</span>
+                <span className="text-gray-600 dark:text-gray-400">{siteConfig.contact.address}</span>
               </li>
               <li className="flex items-start">
                 <i className="fas fa-clock mt-1 mr-3 text-primary dark:text-accent"></i>
@@ -158,7 +155,7 @@ const Footer = () => {
         
         <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">&copy; {new Date().getFullYear()} Dive Tech. All rights reserved.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">&copy; {new Date().getFullYear()} {siteConfig.name} | {siteConfig.domain}. All rights reserved.</p>
             <div className="mt-4 md:mt-0">
               <a href="#" className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
                 Privacy Policy
