@@ -360,17 +360,13 @@ const AdminEditPost = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="content">Content <span className="text-red-500">*</span></Label>
-                      <Textarea
-                        id="content"
-                        name="content"
+                      <RichTextEditor
                         value={formData.content}
-                        onChange={handleChange}
+                        onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
                         placeholder="Write your article content here..."
-                        rows={15}
-                        required
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        You can use HTML for formatting. For links, use &lt;a href="..."&gt;link text&lt;/a&gt;
+                        Use the formatting toolbar to add headings, lists, links, and more to your content.
                       </p>
                     </div>
                   </CardContent>

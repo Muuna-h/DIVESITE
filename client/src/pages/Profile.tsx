@@ -6,25 +6,31 @@ import emmanuelProfile from "../assets/emmanuel_profile.jpg";
 const ProfilePage = () => {
   const authorData = {
     name: "Emmanuel Muuna",
-    title: "Web Developer at Dive Tech",
-    bio: "I'm a passionate web developer with expertise in creating modern, user-friendly websites and applications. I specialize in frontend development using React and backend integration with Node.js and PostgreSQL. My goal is to build digital solutions that not only look great but also deliver exceptional user experiences.",
+    title: "Full Stack Web Developer & IT Manager",
+    bio: "I'm a passionate full stack web developer with expertise in creating modern, user-friendly websites and applications. I specialize in frontend development using React and backend integration with Node.js and PostgreSQL. As the IT Manager at Asili Marketplace, I build and manage their website while implementing innovative technology solutions.",
     skills: [
       "Web Development", "React", "Node.js", 
       "UI/UX Design", "Database Management", "RESTful APIs"
     ],
     education: [
       {
-        degree: "B.Sc. Computer Science",
-        institution: "University of Technology",
-        year: "2020"
+        degree: "Bachelor of Microprocessor Technology & Instrumentation",
+        institution: "University of Nairobi",
+        year: "2018"
       },
       {
         degree: "Full-Stack Web Development",
         institution: "Tech Bootcamp Academy",
-        year: "2021"
+        year: "2020"
       }
     ],
     experience: [
+      {
+        position: "IT Manager & Web Developer",
+        company: "Asili Marketplace",
+        period: "2021 - Present",
+        description: "Building and managing the company website, implementing technology solutions, and overseeing IT infrastructure. Leading development of e-commerce and digital marketing strategies."
+      },
       {
         position: "Web Developer",
         company: "Dive Tech",
@@ -34,14 +40,8 @@ const ProfilePage = () => {
       {
         position: "Junior Developer",
         company: "Digital Solutions Agency",
-        period: "2020 - 2022",
+        period: "2019 - 2021",
         description: "Created websites for small to medium businesses, implemented e-commerce solutions, and managed client websites."
-      },
-      {
-        position: "Freelance Web Designer",
-        company: "Self-employed",
-        period: "2018 - 2020",
-        description: "Designed and developed websites for local businesses and organizations while completing education."
       }
     ],
     services: [
@@ -100,7 +100,7 @@ const ProfilePage = () => {
     <>
       <Helmet>
         <title>{authorData.name} - Dive Tech</title>
-        <meta name="description" content={`${authorData.name} is a ${authorData.title} at Dive Tech, specializing in tech journalism and web development.`} />
+        <meta name="description" content={`${authorData.name} is a ${authorData.title}, specializing in full stack web development and IT management.`} />
       </Helmet>
 
       {/* Hero section */}

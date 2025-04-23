@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useState, useEffect } from "react";
 import SearchOverlay from "./SearchOverlay";
 import { cn } from "@/lib/utils";
+import { siteConfig } from "../config";
 
 interface HeaderProps {
   isSearchOpen: boolean;
@@ -47,7 +48,7 @@ const Header = ({ isSearchOpen, setIsSearchOpen }: HeaderProps) => {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <span className="font-heading text-2xl font-bold text-primary dark:text-accent">
-                Dive<span className="text-accent dark:text-primary">Tech</span>
+                {siteConfig.name.split(' ')[0]}<span className="text-accent dark:text-primary">{siteConfig.name.split(' ')[1]}</span>
               </span>
             </Link>
           </div>
