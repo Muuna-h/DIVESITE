@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -74,6 +75,26 @@ export const siteStats = pgTable("site_stats", {
   avgSessionDuration: integer("avg_session_duration").default(0),
   date: timestamp("date").defaultNow(),
 });
+
+// Define relations
+export const usersRelations = relations(users, ({ many }) => ({
+  articles: many(articles),
+}));
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  articles: many(articles),
+}));
+
+export const articlesRelations = relations(articles, ({ one }) => ({
+  author: one(users, {
+    fields: [articles.authorId],
+    references: [users.id],
+  }),
+  category: one(categories, {
+    fields: [articles.categoryId],
+    references: [categories.id],
+  }),
+}));
 
 // Create insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
