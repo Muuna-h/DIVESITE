@@ -1,16 +1,28 @@
 import { db } from '../server/db';
 import {
   users, categories, articles,
-  type InsertUser, type InsertCategory, type InsertArticle
-} from '@shared/schema';
+  insertUserSchema, insertCategorySchema, insertArticleSchema
+} from '../shared/schema';
 import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm/sql';
 
 async function initDb() {
   console.log('Initializing database...');
 
   try {
+    // Create session table for connect-pg-simple
+    console.log('Creating session table if it does not exist...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "session" (
+        "sid" varchar NOT NULL COLLATE "default",
+        "sess" json NOT NULL,
+        "expire" timestamp(6) NOT NULL,
+        CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+      )
+    `);
+
     // Create admin user
-    const adminUser: InsertUser = {
+    const adminUser = {
       username: 'admin',
       password: 'password', // In production, hash this password
       name: 'Admin User',
@@ -28,8 +40,24 @@ async function initDb() {
       console.log('Admin user already exists');
     }
 
+    // Also check for emmanuel user
+    const existingEmmanuel = await db.select().from(users).where(eq(users.username, 'emmanuel'));
+    
+    if (existingEmmanuel.length === 0) {
+      console.log('Creating emmanuel user...');
+      await db.insert(users).values({
+        username: 'emmanuel',
+        password: 'Bnmjkl0987',
+        name: 'Emmanuel',
+        email: 'emmanuel@divetech.com',
+        role: 'admin'
+      });
+    } else {
+      console.log('Emmanuel user already exists');
+    }
+
     // Create categories
-    const defaultCategories: InsertCategory[] = [
+    const defaultCategories = [
       {
         name: 'Information Technology',
         slug: 'it',
@@ -118,7 +146,7 @@ async function initDb() {
       const [firstCategory] = await db.select().from(categories).limit(1);
       
       if (adminUserData && firstCategory) {
-        const sampleArticle: InsertArticle = {
+        const sampleArticle = {
           title: 'Getting Started with Tech Blogging',
           slug: 'getting-started-with-tech-blogging',
           summary: 'Learn how to start your tech blog and share your knowledge with the world.',

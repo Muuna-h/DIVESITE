@@ -3,21 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import ArticleCard from "./ArticleCard";
 import { Article } from "@shared/schema";
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-};
+import { container, fadeUp, scrollTriggerOptions } from "@/utils/animations";
 
 const LatestArticles = () => {
   const { data: latestArticles, isLoading } = useQuery<Article[]>({
@@ -85,35 +71,52 @@ const LatestArticles = () => {
   const articles = latestArticles || placeholderArticles;
 
   return (
-    <section className="py-16 bg-white dark:bg-gray-900">
+    <motion.section 
+      className="py-16 bg-white dark:bg-gray-900"
+      initial="hidden"
+      whileInView="visible"
+      viewport={scrollTriggerOptions}
+    >
       <div className="container mx-auto px-4">
-        <h2 className="font-heading text-3xl font-bold mb-8 text-center">
+        <motion.h2 
+          className="font-heading text-3xl font-bold mb-8 text-center"
+          variants={fadeUp}
+        >
           Latest <span className="text-primary dark:text-accent">Articles</span>
-        </h2>
+        </motion.h2>
         
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
         >
           {articles.map((article, index) => (
-            <motion.div key={article.id || index} variants={item}>
+            <motion.div 
+              key={article.id || index} 
+              variants={fadeUp}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+            >
               <ArticleCard article={article as Article} />
             </motion.div>
           ))}
         </motion.div>
         
-        <div className="text-center mt-12">
-          <Link href="/articles">
-            <a className="inline-block bg-primary hover:bg-primary-dark dark:bg-accent dark:hover:bg-accent-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg">
-              View All Articles
-            </a>
-          </Link>
-        </div>
+        <motion.div 
+          className="text-center mt-12"
+          variants={fadeUp}
+        >
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link href="/articles">
+              <a className="inline-block bg-primary hover:bg-primary-dark dark:bg-accent dark:hover:bg-accent-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg">
+                View All Articles
+              </a>
+            </Link>
+          </motion.div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

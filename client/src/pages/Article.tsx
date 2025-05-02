@@ -6,6 +6,7 @@ import { formatDate, getCategoryColor } from "@/lib/utils";
 import { Link } from "wouter";
 import { Article as ArticleType } from "@shared/schema";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import { useEffect } from "react";
 
 const Article = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -13,6 +14,38 @@ const Article = () => {
   const { data: article, isLoading } = useQuery<ArticleType>({
     queryKey: [`/api/articles/${slug}`],
   });
+
+  // View counting effect
+  useEffect(() => {
+    // Only increment view when we have the article data and a valid ID
+    if (article?.id) {
+      // Check if this article was already viewed in this session
+      const viewedArticles = JSON.parse(sessionStorage.getItem('viewedArticles') || '[]');
+      
+      // Only count the view if this article hasn't been viewed in this session
+      if (!viewedArticles.includes(article.id)) {
+        // Add to viewed articles in this session
+        viewedArticles.push(article.id);
+        sessionStorage.setItem('viewedArticles', JSON.stringify(viewedArticles));
+        
+        // Send request to increment view count
+        fetch(`/api/articles/${article.id}/view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            console.error('Failed to increment view count');
+          }
+        })
+        .catch(error => {
+          console.error('Error incrementing view count:', error);
+        });
+      }
+    }
+  }, [article]);
 
   if (isLoading) {
     return (
@@ -91,10 +124,10 @@ const Article = () => {
                   {categoryName}
                 </a>
               </Link>
-              <span className="text-gray-500 dark:text-gray-400 text-sm">{formatDate(createdAt)}</span>
+              <span className="text-gray-500 dark:text-gray-400 text-sm">{createdAt && formatDate(createdAt)}</span>
               
               {author && (
-                <span className="text-gray-500 dark:text-gray-400 text-sm ml-auto">
+                <span className="text-gray-500 dark:text-gray-400 text-sm ml-auto mt-1 sm:mt-0">
                   By <span className="font-medium">{author.name}</span>
                 </span>
               )}
@@ -112,7 +145,7 @@ const Article = () => {
             
             {/* Content */}
             <motion.div 
-              className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-primary dark:prose-a:text-accent prose-img:rounded-xl"
+              className="prose sm:prose-lg max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-primary dark:prose-a:text-accent prose-img:rounded-xl"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}

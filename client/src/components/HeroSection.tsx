@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useEffect, useState, useRef } from "react";
+import { fadeIn, container } from "@/utils/animations";
 
 const HeroSection = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -48,28 +49,27 @@ const HeroSection = () => {
       </div>
       
       {/* Hero content */}
-      <div className="container mx-auto px-4 z-10 text-center text-white">
+      <motion.div 
+        className="container mx-auto px-4 z-10 text-center text-white"
+        variants={container}
+        initial="hidden"
+        animate="visible"
+      >
         <motion.h1 
           className="font-heading text-4xl md:text-6xl font-bold mb-4 tracking-tight"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          variants={fadeIn("up")}
         >
           Dive Into Tomorrow's Tech
         </motion.h1>
         <motion.p 
           className="text-xl md:text-2xl max-w-3xl mx-auto mb-8 text-gray-100"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          variants={fadeIn("up", 0.2)}
         >
           Exploring cutting-edge innovations and advancements shaping our digital future.
         </motion.p>
         <motion.div 
           className="flex flex-col sm:flex-row justify-center gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          variants={fadeIn("up", 0.4)}
         >
           <Link href="#featured" className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg">
             Explore Articles
@@ -89,7 +89,7 @@ const HeroSection = () => {
             <i className="fas fa-chevron-down text-2xl"></i>
           </Link>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 };

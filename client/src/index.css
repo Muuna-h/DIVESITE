@@ -82,4 +82,58 @@
   .category-tile:hover {
     @apply transform -translate-y-1 shadow-lg;
   }
+  
+  /* Text gradient styling */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+  }
+}
+
+/* Custom keyframes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    box-shadow: 0 0 15px 5px rgba(75, 255, 179, 0.4);
+  }
+  50% {
+    opacity: 0.9;
+    box-shadow: 0 0 25px 8px rgba(75, 255, 179, 0.7);
+  }
+}
+
+@keyframes logo-glow {
+  0% {
+    opacity: 0.5;
+    background: radial-gradient(circle, rgba(69, 108, 191, 0.4) 0%, rgba(75, 255, 179, 0.3) 50%, transparent 100%);
+  }
+  50% {
+    opacity: 0.8;
+    background: radial-gradient(circle, rgba(69, 108, 191, 0.6) 0%, rgba(75, 255, 179, 0.5) 50%, transparent 100%);
+  }
+  100% {
+    opacity: 0.5;
+    background: radial-gradient(circle, rgba(69, 108, 191, 0.4) 0%, rgba(75, 255, 179, 0.3) 50%, transparent 100%);
+  }
+}
+
+/* Custom animations */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+.animate-logo-glow {
+  animation: logo-glow 4s ease-in-out infinite;
 }

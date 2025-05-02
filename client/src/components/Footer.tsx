@@ -1,7 +1,16 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { siteConfig } from "../config";
+import { navigateWithScroll } from "@/utils/navigation";
 
 const Footer = () => {
+  const [_, navigate] = useLocation();
+
+  // Custom Link handler with scroll to top functionality
+  const handleNavigation = (path: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigateWithScroll(path, navigate);
+  };
+
   return (
     <footer className="bg-white dark:bg-gray-900 pt-16 pb-8">
       <div className="container mx-auto px-4">
@@ -20,9 +29,9 @@ const Footer = () => {
                 <i className="fab fa-github text-xl"></i>
                 <span className="sr-only">GitHub</span>
               </a>
-              <a href={siteConfig.socialLinks.linkedin} className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                <i className="fab fa-linkedin text-xl"></i>
-                <span className="sr-only">LinkedIn</span>
+              <a href={siteConfig.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <i className="fab fa-whatsapp text-xl"></i>
+                <span className="sr-only">WhatsApp</span>
               </a>
             </div>
           </div>
@@ -31,34 +40,34 @@ const Footer = () => {
             <h3 className="font-heading text-lg font-bold mb-4">Categories</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/category/ai" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/category/ai" onClick={handleNavigation("/category/ai")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Artificial Intelligence
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/category/software" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/category/software" onClick={handleNavigation("/category/software")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Software Development
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/category/hardware" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/category/hardware" onClick={handleNavigation("/category/hardware")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Hardware Technology
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/category/emerging" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/category/emerging" onClick={handleNavigation("/category/emerging")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Emerging Technologies
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/category/green" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/category/green" onClick={handleNavigation("/category/green")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Green Tech
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/category/crypto" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/category/crypto" onClick={handleNavigation("/category/crypto")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Cryptocurrency
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -67,29 +76,29 @@ const Footer = () => {
             <h3 className="font-heading text-lg font-bold mb-4">Services</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/profile#services" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/services" onClick={handleNavigation("/services")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   E-Commerce Websites
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/profile#services" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/services" onClick={handleNavigation("/services")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Blog Platforms
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/profile#services" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/services" onClick={handleNavigation("/services")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Business Websites
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/profile#services" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/services" onClick={handleNavigation("/services")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Web Applications
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                  Custom Projects
-                </Link>
+                <a href="/services" onClick={handleNavigation("/services")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                  View All Services
+                </a>
               </li>
             </ul>
           </div>
@@ -98,32 +107,32 @@ const Footer = () => {
             <h3 className="font-heading text-lg font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/" onClick={handleNavigation("/")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Home
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/about" onClick={handleNavigation("/about")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   About Us
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/profile" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/profile" onClick={handleNavigation("/profile")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Author Profile
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/contact" onClick={handleNavigation("/contact")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Contact
-                </Link>
+                </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/privacy" onClick={handleNavigation("/privacy")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/terms" onClick={handleNavigation("/terms")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Terms & Conditions
                 </a>
               </li>
@@ -135,11 +144,18 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start">
                 <i className="fas fa-envelope mt-1 mr-3 text-primary dark:text-accent"></i>
-                <span className="text-gray-600 dark:text-gray-400">{siteConfig.contact.email}</span>
+                <a href={`mailto:${siteConfig.contact.email}`}
+                   className="inline-flex items-center justify-center py-1.5 px-3.5 text-xs font-medium rounded-full text-white bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 transition-all duration-300 shadow hover:shadow-md">
+                   Email Us
+                </a>
               </li>
               <li className="flex items-start">
-                <i className="fas fa-phone mt-1 mr-3 text-primary dark:text-accent"></i>
-                <span className="text-gray-600 dark:text-gray-400">{siteConfig.contact.phone}</span>
+                <i className="fab fa-whatsapp mt-1 mr-3 text-primary dark:text-accent"></i>
+                <a href={siteConfig.contact.phone} 
+                   target="_blank" rel="noopener noreferrer"
+                   className="inline-flex items-center justify-center py-1.5 px-3.5 text-xs font-medium rounded-full text-white bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 transition-all duration-300 shadow hover:shadow-md">
+                   Chat on WhatsApp
+                </a>
               </li>
               <li className="flex items-start">
                 <i className="fas fa-map-marker-alt mt-1 mr-3 text-primary dark:text-accent"></i>
@@ -157,13 +173,13 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row md:justify-between md:items-center">
             <p className="text-gray-500 dark:text-gray-400 text-sm">&copy; {new Date().getFullYear()} {siteConfig.name} | {siteConfig.domain}. All rights reserved.</p>
             <div className="mt-4 md:mt-0">
-              <a href="#" className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
+              <a href="/privacy" onClick={handleNavigation("/privacy")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
                 Privacy Policy
               </a>
-              <a href="#" className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
+              <a href="/terms" onClick={handleNavigation("/terms")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
                 Terms of Service
               </a>
-              <a href="#" className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300">
+              <a href="/sitemap" onClick={handleNavigation("/sitemap")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300">
                 Sitemap
               </a>
             </div>

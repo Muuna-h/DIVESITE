@@ -24,6 +24,7 @@ export const categories = pgTable("categories", {
   description: text("description"),
   icon: text("icon"),
   gradient: text("gradient"),
+  image: text("image"),
 });
 
 // Articles table
@@ -113,6 +114,7 @@ export const insertCategorySchema = createInsertSchema(categories).pick({
   description: true,
   icon: true,
   gradient: true,
+  image: true,
 });
 
 export const insertArticleSchema = createInsertSchema(articles).pick({

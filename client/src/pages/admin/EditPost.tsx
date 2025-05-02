@@ -37,6 +37,20 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Article, Category } from "@shared/schema";
+import ImageUpload from "@/components/ui/image-upload";
+
+// Define a more specific user type to fix TypeScript errors
+interface User {
+  id: number;
+  username: string;
+  name: string;
+  role: string;
+  email?: string;
+}
+
+interface UserData {
+  user: User;
+}
 
 const AdminEditPost = () => {
   const { id } = useParams<{ id: string }>();
@@ -61,7 +75,7 @@ const AdminEditPost = () => {
   const queryClient = useQueryClient();
 
   // Query for the current user
-  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery({
+  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery<UserData>({
     queryKey: ['/api/auth/me'],
   });
 
@@ -73,13 +87,13 @@ const AdminEditPost = () => {
 
   // Query for article data
   const { data: article, isLoading: isArticleLoading } = useQuery<Article>({
-    queryKey: [`/api/articles/${id}`],
+    queryKey: [`/api/articles/id/${id}`],
     enabled: !!userData && !!id,
   });
 
   // Update article mutation
   const updateArticle = useMutation({
-    mutationFn: (articleData: typeof formData) => {
+    mutationFn: (articleData: any) => {
       return apiRequest("PUT", `/api/articles/${id}`, articleData);
     },
     onSuccess: async (response) => {
@@ -89,7 +103,7 @@ const AdminEditPost = () => {
         description: "Article updated successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/articles/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/articles/id/${id}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
       queryClient.invalidateQueries({ queryKey: ['/api/articles/latest'] });
       navigate(`/article/${data.slug}`);
@@ -144,13 +158,13 @@ const AdminEditPost = () => {
         slug: article.slug,
         summary: article.summary,
         content: article.content,
-        image: article.image,
+        image: article.image || "",
         topImage: article.topImage || "",
         midImage: article.midImage || "",
         bottomImage: article.bottomImage || "",
         categoryId: article.categoryId.toString(),
         tags: article.tags || [],
-        featured: article.featured
+        featured: article.featured || false
       });
     }
   }, [article]);
@@ -227,6 +241,13 @@ const AdminEditPost = () => {
     }));
   };
 
+  const handleImageUploaded = (imageUrl: string, field: keyof typeof formData) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: imageUrl
+    }));
+  };
+
   // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,7 +264,7 @@ const AdminEditPost = () => {
     
     setIsSubmitting(true);
     
-    // Convert categoryId to number
+    // Convert categoryId to number and prepare submit data
     const submitData = {
       ...formData,
       categoryId: parseInt(formData.categoryId)
@@ -301,7 +322,7 @@ const AdminEditPost = () => {
               <Button variant="outline" onClick={() => navigate("/admin/manage")}>
                 <i className="fas fa-arrow-left mr-2"></i> Back to Articles
               </Button>
-              <Button variant="outline" onClick={() => navigate(`/article/${article.slug}`)}>
+              <Button variant="outline" onClick={() => navigate(`/article/${article?.slug}`)}>
                 <i className="fas fa-eye mr-2"></i> View Article
               </Button>
             </div>
@@ -384,50 +405,38 @@ const AdminEditPost = () => {
                       <Label htmlFor="image">
                         Thumbnail Image <span className="text-red-500">*</span>
                       </Label>
-                      <Input
-                        id="image"
-                        name="image"
-                        value={formData.image}
-                        onChange={handleChange}
-                        placeholder="Enter image URL"
-                        required
+                      <ImageUpload 
+                        currentImage={formData.image} 
+                        onImageUploaded={(url) => handleImageUploaded(url, 'image')}
+                        label="Upload Thumbnail Image"
                       />
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        This is the main image displayed in cards and at the top of the article
-                      </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                       <div className="space-y-2">
                         <Label htmlFor="topImage">Top Image (Optional)</Label>
-                        <Input
-                          id="topImage"
-                          name="topImage"
-                          value={formData.topImage}
-                          onChange={handleChange}
-                          placeholder="Enter image URL"
+                        <ImageUpload 
+                          currentImage={formData.topImage} 
+                          onImageUploaded={(url) => handleImageUploaded(url, 'topImage')}
+                          label="Upload Top Image"
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="midImage">Mid-Article Image (Optional)</Label>
-                        <Input
-                          id="midImage"
-                          name="midImage"
-                          value={formData.midImage}
-                          onChange={handleChange}
-                          placeholder="Enter image URL"
+                        <ImageUpload 
+                          currentImage={formData.midImage} 
+                          onImageUploaded={(url) => handleImageUploaded(url, 'midImage')}
+                          label="Upload Mid Image"
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="bottomImage">Bottom Image (Optional)</Label>
-                        <Input
-                          id="bottomImage"
-                          name="bottomImage"
-                          value={formData.bottomImage}
-                          onChange={handleChange}
-                          placeholder="Enter image URL"
+                        <ImageUpload 
+                          currentImage={formData.bottomImage} 
+                          onImageUploaded={(url) => handleImageUploaded(url, 'bottomImage')}
+                          label="Upload Bottom Image"
                         />
                       </div>
                     </div>
@@ -529,11 +538,11 @@ const AdminEditPost = () => {
                         <div className="grid grid-cols-2 gap-2">
                           <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded">
                             <p className="text-xs text-gray-500 dark:text-gray-400">Views</p>
-                            <p className="font-bold">{article.views}</p>
+                            <p className="font-bold">{article?.views || 0}</p>
                           </div>
                           <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded">
                             <p className="text-xs text-gray-500 dark:text-gray-400">Created</p>
-                            <p className="font-bold">{new Date(article.createdAt).toLocaleDateString()}</p>
+                            <p className="font-bold">{article?.createdAt ? new Date(article.createdAt).toLocaleDateString() : '-'}</p>
                           </div>
                         </div>
                       </div>

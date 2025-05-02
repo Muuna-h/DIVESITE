@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { container, fadeUp, scaleUp, scrollTriggerOptions } from "@/utils/animations";
 
 const ServicesSection = () => {
   const services = [
@@ -30,13 +31,18 @@ const ServicesSection = () => {
   ];
 
   return (
-    <section id="services" className="py-20 bg-gray-50 dark:bg-gray-800">
+    <motion.section 
+      id="services" 
+      className="py-20 bg-gray-50 dark:bg-gray-800"
+      initial="hidden"
+      whileInView="visible"
+      viewport={scrollTriggerOptions}
+      variants={container}
+    >
       <div className="container mx-auto px-4">
         <motion.div 
           className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          variants={fadeUp}
         >
           <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
             Our <span className="text-primary dark:text-accent">Web Development</span> Services
@@ -51,9 +57,8 @@ const ServicesSection = () => {
             <motion.div
               key={index}
               className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 * index }}
+              variants={scaleUp}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
             >
               <div className={`h-2 bg-gradient-to-r ${service.color}`}></div>
               <div className="p-6">
@@ -75,25 +80,81 @@ const ServicesSection = () => {
         </div>
 
         <motion.div 
-          className="mt-16 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
+          className="mt-20 relative"
+          variants={fadeUp}
         >
-          <h3 className="font-heading text-2xl font-bold mb-4">
-            Ready to Start Your Project?
+          <div className="bg-gray-900 dark:bg-gray-800 rounded-2xl overflow-hidden relative z-10">
+            {/* Background design elements */}
+            <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-0 w-60 h-60 bg-gradient-to-r from-teal-400/20 to-green-500/20 rounded-full blur-3xl"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('/grid-pattern.svg')] opacity-5"></div>
+            
+            <div className="relative z-10 px-8 py-16 md:py-20 text-center">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="max-w-3xl mx-auto"
+              >
+                <h3 className="font-heading text-3xl md:text-4xl font-bold mb-6 text-white">
+                  Ready to Start Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">Project?</span>
           </h3>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
+                <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10">
             Let's work together to create a stunning website that meets your needs and exceeds your expectations.
           </p>
-          <Link href="/contact">
-            <a className="bg-primary hover:bg-primary-dark dark:bg-accent dark:hover:bg-accent-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg inline-flex items-center">
-              Get in Touch <i className="fas fa-chevron-right ml-2"></i>
-            </a>
-          </Link>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <motion.div
+                    whileHover={{ translateY: -5, boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)' }}
+            whileTap={{ scale: 0.95 }}
+                    className="transition-all duration-300"
+          >
+            <Link href="/contact">
+                      <a className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-base py-3 px-8 rounded-full shadow-lg inline-flex items-center justify-center">
+                        Get in Touch <i className="fas fa-arrow-right ml-2"></i>
+              </a>
+            </Link>
+          </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ translateY: -5, boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4)' }}
+                    whileTap={{ scale: 0.95 }}
+                    className="transition-all duration-300"
+                  >
+                    <a 
+                      href="https://wa.me/254757937999" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 text-white font-medium text-base py-3 px-8 rounded-full shadow-lg inline-flex items-center justify-center"
+                    >
+                      <i className="fab fa-whatsapp mr-2"></i> WhatsApp Us
+                    </a>
+                  </motion.div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+          
+          {/* Decorative dots */}
+          <div className="hidden md:block absolute -top-4 -left-4 w-8 h-8">
+            <div className="grid grid-cols-2 gap-1">
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+              <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            </div>
+          </div>
+          <div className="hidden md:block absolute -bottom-4 -right-4 w-8 h-8">
+            <div className="grid grid-cols-2 gap-1">
+              <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+              <div className="w-2 h-2 rounded-full bg-teal-400"></div>
+              <div className="w-2 h-2 rounded-full bg-teal-400"></div>
+              <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+            </div>
+          </div>
         </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

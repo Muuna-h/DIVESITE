@@ -26,44 +26,38 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
   const categoryName = article.category?.name || getCategoryName(categorySlug);
 
   return (
-    <motion.div 
-      className="bg-secondary dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg zoom-hover h-full flex flex-col"
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.3 }}
-    >
-      <Link href={`/article/${slug}`}>
-        <a className="block overflow-hidden">
+    <Link href={`/article/${slug}`}>
+      <motion.div 
+        className="bg-secondary dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg zoom-hover h-full flex flex-col cursor-pointer"
+        whileHover={{ y: -5 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="block overflow-hidden">
           <img 
             src={image} 
             alt={title} 
-            className="w-full h-48 object-cover transition-transform duration-500 hover:scale-105"
+            className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
           />
-        </a>
-      </Link>
-      <div className="p-6 flex-grow flex flex-col">
-        <div className="flex items-center mb-2">
-          <Link href={`/category/${categorySlug}`}>
-            <a className={`${categoryColors.bg} ${categoryColors.text} text-xs font-medium px-2.5 py-0.5 rounded`}>
-              {categoryName}
-            </a>
-          </Link>
-          <span className="text-gray-500 dark:text-gray-400 text-sm ml-auto">{formatDate(createdAt)}</span>
         </div>
-        <Link href={`/article/${slug}`}>
-          <a className="block">
-            <h3 className="font-heading text-xl font-bold mb-2 hover:text-primary dark:hover:text-accent transition-colors">
-              {title}
-            </h3>
-          </a>
-        </Link>
-        <p className="text-gray-600 dark:text-gray-300 mb-4 flex-grow">{summary}</p>
-        <Link href={`/article/${slug}`}>
-          <a className="mt-auto text-primary dark:text-accent font-medium hover:underline inline-flex items-center">
+        <div className="p-6 flex-grow flex flex-col">
+          <div className="flex items-center mb-2">
+            <span className={`${categoryColors.bg} ${categoryColors.text} text-xs font-medium px-2.5 py-0.5 rounded`}>
+              {categoryName}
+            </span>
+            <span className="text-gray-500 dark:text-gray-400 text-sm ml-auto">
+              {createdAt ? formatDate(createdAt) : ''}
+            </span>
+          </div>
+          <h3 className="font-heading text-xl font-bold mb-2 hover:text-primary dark:hover:text-accent transition-colors">
+            {title}
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4 flex-grow">{summary}</p>
+          <div className="mt-auto text-primary dark:text-accent font-medium inline-flex items-center">
             Read More <i className="fas fa-arrow-right ml-1 text-xs"></i>
-          </a>
-        </Link>
-      </div>
-    </motion.div>
+          </div>
+        </div>
+      </motion.div>
+    </Link>
   );
 };
 

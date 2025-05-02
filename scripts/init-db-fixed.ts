@@ -10,10 +10,10 @@ async function initDb() {
   try {
     // Create admin user
     const adminUser = {
-      username: 'admin',
-      password: 'password', // In production, hash this password
-      name: 'Admin User',
-      email: 'admin@divetech.com',
+      username: 'emmanuel',
+      password: 'Bnmjkl0987', // In production, hash this password
+      name: 'Emmanuel',
+      email: 'emmanuel@divetech.com',
       role: 'admin'
     };
 

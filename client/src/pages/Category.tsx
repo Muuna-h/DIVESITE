@@ -44,11 +44,19 @@ const Category = () => {
       <div className="pt-16 pb-12 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-8 mb-12">
-            <div className={`${categoryGradient} w-24 h-24 rounded-full flex items-center justify-center shadow-lg`}>
-              <i className={`fas ${categoryIcon} text-white text-4xl`}></i>
+            <div className={`${categoryGradient} w-24 h-24 rounded-full flex items-center justify-center shadow-lg overflow-hidden`}>
+              {articles && articles.length > 0 && articles[0].category?.image ? (
+                <img 
+                  src={articles[0].category.image} 
+                  alt={categoryName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <i className={`fas ${categoryIcon} text-white text-4xl`}></i>
+              )}
             </div>
             <div className="text-center sm:text-left">
-              <h1 className="font-heading text-4xl font-bold mb-2">{categoryName}</h1>
+              <h1 className="font-heading text-3xl sm:text-4xl font-bold mb-2">{categoryName}</h1>
               <p className="text-gray-600 dark:text-gray-300 max-w-3xl">{categoryDescription}</p>
             </div>
           </div>

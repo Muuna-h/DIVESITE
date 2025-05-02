@@ -8,7 +8,15 @@ import {
   type SiteStat, type InsertSiteStat
 } from "@shared/schema";
 import { db } from './db';
-import { eq, like, desc, asc, and, or, sql } from 'drizzle-orm';
+import { eq, like, desc, asc, and, or, sql, gte, lte, sum, lt } from 'drizzle-orm';
+
+// Define structure for stats comparison
+interface SiteStatsAggregate {
+  totalPageViews: number;
+  totalUniqueVisitors: number;
+  avgBounceRate: number;
+  avgSessionDuration: number;
+}
 
 // Modify the interface with any CRUD methods you might need
 export interface IStorage {
@@ -18,10 +26,13 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   
   // Category methods
-  getCategories(): Promise<Category[]>;
+  getCategories(options?: { includeDetails?: boolean }): Promise<Partial<Category>[]>;
   getCategoryBySlug(slug: string): Promise<Category | undefined>;
   getCategoryById(id: number): Promise<Category | undefined>;
+  getCategory(id: number): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined>;
+  deleteCategory(id: number): Promise<boolean>;
   
   // Article methods
   getArticles(): Promise<Article[]>;
@@ -48,7 +59,11 @@ export interface IStorage {
   
   // Site stats methods
   getSiteStats(): Promise<SiteStat[]>;
+  getSiteStatsComparison(periodDays: number): Promise<{ current: SiteStatsAggregate | null, previous: SiteStatsAggregate | null }>;
   updateSiteStats(stats: Partial<InsertSiteStat>): Promise<SiteStat>;
+
+  // Update user role
+  updateUserRole(id: number, role: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -68,24 +83,99 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  // Update user role
+  async updateUserRole(id: number, role: string): Promise<boolean> {
+    try {
+      const result = await db.update(users)
+        .set({ role })
+        .where(eq(users.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      return false;
+    }
+  }
+
   // Category methods
-  async getCategories(): Promise<Category[]> {
-    return await db.select().from(categories);
+  async getCategories(options?: { includeDetails?: boolean }): Promise<Partial<Category>[]> {
+    const query = db.select({
+      id: categories.id,
+      name: categories.name,
+      slug: categories.slug,
+      // Conditionally select details
+      ...(options?.includeDetails && {
+        description: categories.description,
+        icon: categories.icon,
+        gradient: categories.gradient,
+        image: categories.image
+      })
+    }).from(categories);
+    
+    return await query;
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
+    // This should always return full details
     const [category] = await db.select().from(categories).where(eq(categories.slug, slug));
     return category;
   }
 
   async getCategoryById(id: number): Promise<Category | undefined> {
+    // This should always return full details
     const [category] = await db.select().from(categories).where(eq(categories.id, id));
     return category;
+  }
+
+  async getCategory(id: number): Promise<Category | undefined> {
+    return this.getCategoryById(id);
   }
 
   async createCategory(category: InsertCategory): Promise<Category> {
     const [newCategory] = await db.insert(categories).values(category).returning();
     return newCategory;
+  }
+
+  async updateCategory(id: number, updateData: Partial<InsertCategory>): Promise<Category | undefined> {
+    try {
+      const [updatedCategory] = await db.update(categories)
+        .set(updateData)
+        .where(eq(categories.id, id))
+        .returning();
+      
+      return updatedCategory;
+    } catch (error) {
+      console.error('Error updating category:', error);
+      return undefined;
+    }
+  }
+
+  // Add deleteCategory method
+  async deleteCategory(id: number): Promise<boolean> {
+    try {
+      // Before deleting the category, check if any articles are using it.
+      // Option 1: Prevent deletion if articles are using it
+      const articlesInCategory = await db.select({ count: sql<number>`count(*)` })
+        .from(articles)
+        .where(eq(articles.categoryId, id));
+
+      if (articlesInCategory[0].count > 0) {
+        console.error(`Cannot delete category ID ${id}: It is currently associated with ${articlesInCategory[0].count} articles.`);
+        // You might want to throw an error or return a specific status code in a real API
+        return false;
+      }
+
+      // Option 2: Set categoryId to null for associated articles (requires categoryId to be nullable in articles schema)
+      // await db.update(articles).set({ categoryId: null }).where(eq(articles.categoryId, id));
+
+      // Proceed with deletion
+      const result = await db.delete(categories).where(eq(categories.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      return false;
+    }
   }
 
   // Article methods
@@ -311,11 +401,60 @@ export class DatabaseStorage implements IStorage {
 
   // Site stats methods
   async getSiteStats(): Promise<SiteStat[]> {
-    return await db.select().from(siteStats);
+    // Get all stats entries, ordered by date descending
+    return await db.select().from(siteStats).orderBy(desc(siteStats.date));
+  }
+
+  // New method to get aggregated stats for comparison
+  async getSiteStatsComparison(periodDays: number): Promise<{ current: SiteStatsAggregate | null, previous: SiteStatsAggregate | null }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+
+    const currentPeriodEnd = new Date(today); // End of today (exclusive in query)
+    currentPeriodEnd.setDate(currentPeriodEnd.getDate() + 1);
+
+    const currentPeriodStart = new Date(today);
+    currentPeriodStart.setDate(currentPeriodStart.getDate() - periodDays + 1); // Start of current period (inclusive)
+
+    const previousPeriodEnd = new Date(currentPeriodStart); // End of previous period (exclusive)
+    const previousPeriodStart = new Date(previousPeriodEnd);
+    previousPeriodStart.setDate(previousPeriodStart.getDate() - periodDays); // Start of previous period (inclusive)
+
+    const aggregateStats = async (startDate: Date, endDate: Date): Promise<SiteStatsAggregate | null> => {
+      const result = await db.select({
+          totalPageViews: sum(siteStats.pageViews).mapWith(Number),
+          totalUniqueVisitors: sum(siteStats.uniqueVisitors).mapWith(Number),
+          avgBounceRate: sql<number>`AVG(${siteStats.bounceRate})`.mapWith(Number),
+          avgSessionDuration: sql<number>`AVG(${siteStats.avgSessionDuration})`.mapWith(Number)
+        })
+        .from(siteStats)
+        .where(and(
+          gte(siteStats.date, startDate), // Inclusive start date
+          lt(siteStats.date, endDate)    // Exclusive end date
+        ));
+        
+      const stats = result[0];
+      // Check if any aggregation result is null (meaning no data in the period)
+      if (stats.totalPageViews === null || stats.totalUniqueVisitors === null) {
+          return null; 
+      }
+      
+      return {
+        totalPageViews: stats.totalPageViews ?? 0,
+        totalUniqueVisitors: stats.totalUniqueVisitors ?? 0,
+        // Use ?? 0 for averages as well, assuming 0 if no data
+        avgBounceRate: stats.avgBounceRate ?? 0,
+        avgSessionDuration: stats.avgSessionDuration ?? 0
+      };
+    };
+
+    const current = await aggregateStats(currentPeriodStart, currentPeriodEnd);
+    const previous = await aggregateStats(previousPeriodStart, previousPeriodEnd);
+
+    return { current, previous };
   }
 
   async updateSiteStats(updateData: Partial<InsertSiteStat>): Promise<SiteStat> {
-    // Get today's stats or create new
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -323,18 +462,24 @@ export class DatabaseStorage implements IStorage {
       .where(sql`DATE(${siteStats.date}) = DATE(${today})`);
     
     if (existingStat) {
+      // Increment existing daily stats
       const [updatedStat] = await db.update(siteStats)
         .set({
-          pageViews: updateData.pageViews !== undefined ? updateData.pageViews : existingStat.pageViews,
-          uniqueVisitors: updateData.uniqueVisitors !== undefined ? updateData.uniqueVisitors : existingStat.uniqueVisitors,
-          bounceRate: updateData.bounceRate !== undefined ? updateData.bounceRate : existingStat.bounceRate,
-          avgSessionDuration: updateData.avgSessionDuration !== undefined ? updateData.avgSessionDuration : existingStat.avgSessionDuration
+          pageViews: sql`${siteStats.pageViews} + ${updateData.pageViews || 0}`,
+          uniqueVisitors: sql`${siteStats.uniqueVisitors} + ${updateData.uniqueVisitors || 0}`,
+          // A simple average update isn't statistically correct for bounce/duration.
+          // Ideally, you'd store raw data (total bounces, total sessions, total duration) 
+          // and calculate the average when needed, or use a weighted average update.
+          // Keeping simple update for now, but flag as potentially inaccurate.
+          bounceRate: updateData.bounceRate !== undefined ? updateData.bounceRate : existingStat.bounceRate, // Overwrites daily average
+          avgSessionDuration: updateData.avgSessionDuration !== undefined ? updateData.avgSessionDuration : existingStat.avgSessionDuration // Overwrites daily average
         })
         .where(eq(siteStats.id, existingStat.id))
         .returning();
       
       return updatedStat;
     } else {
+      // Create new daily stats entry
       const [newStat] = await db.insert(siteStats)
         .values({
           pageViews: updateData.pageViews || 0,

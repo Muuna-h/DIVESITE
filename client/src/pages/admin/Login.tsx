@@ -25,15 +25,22 @@ const Login = () => {
     setError("");
     
     try {
-      await apiRequest("POST", "/api/auth/login", { username, password });
+      const response = await apiRequest("POST", "/api/auth/login", { username, password });
+      const userData = await response.json();
       
       toast({
         title: "Login successful",
         description: "Welcome to the admin dashboard!",
       });
       
-      setLocation("/admin");
+      console.log("Login successful, redirecting to dashboard", userData);
+      
+      // Add a small delay before redirect to ensure cookies are set
+      setTimeout(() => {
+        window.location.href = "/admin";  // Use direct navigation instead of setLocation
+      }, 500);
     } catch (err) {
+      console.error("Login failed:", err);
       setError("Invalid username or password. Please try again.");
       toast({
         title: "Login failed",

@@ -5,12 +5,12 @@ export const siteConfig = {
   description: "Modern technology blog with insights, tutorials and news",
   socialLinks: {
     twitter: "https://twitter.com/DiveTechBlog",
-    github: "https://github.com/DiveTech",
-    linkedin: "https://linkedin.com/company/divetech"
+    github: "https://github.com/Muuna-h",
+    whatsapp: "https://wa.me/254757937999"
   },
   contact: {
-    email: "contact@divetech.space",
-    phone: "+254 700 123456",
+    email: "divetech@gmail.com",
+    phone: "https://wa.me/254757937999",
     address: "Nairobi, Kenya"
   }
 };

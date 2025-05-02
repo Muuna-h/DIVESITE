@@ -27,14 +27,25 @@ import {
 import { Article, Category } from "@shared/schema";
 import { getCategoryColor } from "@/lib/utils";
 
+// Define the expected shape of the user data from the API
+interface UserResponse {
+  user: {
+    id: number;
+    username: string;
+    name?: string | null;
+    role?: string | null;
+    // Add other fields if needed
+  } | null;
+}
+
 const AdminManagePosts = () => {
   const [_, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
-  // Query for the current user
-  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery({
+  // Query for the current user with explicit type
+  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery<UserResponse>({
     queryKey: ['/api/auth/me'],
   });
 
@@ -73,16 +84,24 @@ const AdminManagePosts = () => {
 
   // Sort articles
   const sortedArticles = [...filteredArticles].sort((a, b) => {
+    // Handle potential null dates by defaulting to epoch (0) or a very distant date
+    const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+    const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+    
+    // Handle potential null views by defaulting to 0
+    const viewsA = a.views ?? 0;
+    const viewsB = b.views ?? 0;
+
     if (sortBy === "newest") {
-      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+      return dateB - dateA;
     } else if (sortBy === "oldest") {
-      return new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime();
+      return dateA - dateB;
     } else if (sortBy === "title-asc") {
       return a.title.localeCompare(b.title);
     } else if (sortBy === "title-desc") {
       return b.title.localeCompare(a.title);
     } else if (sortBy === "most-views") {
-      return b.views - a.views;
+      return viewsB - viewsA;
     }
     return 0;
   });
@@ -95,7 +114,7 @@ const AdminManagePosts = () => {
     );
   }
 
-  if (!userData || !userData.user) {
+  if (!userData?.user) {
     return null; // Will redirect in useEffect
   }
 
@@ -214,7 +233,7 @@ const AdminManagePosts = () => {
                               <div className="w-10 h-10 rounded overflow-hidden mr-3 flex-shrink-0">
                                 <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
                               </div>
-                              <div className="truncate max-w-xs">
+                              <div className="truncate max-w-[150px] sm:max-w-xs">
                                 <span className="font-medium">{article.title}</span>
                                 <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                   {article.summary.substring(0, 60)}...
@@ -228,10 +247,11 @@ const AdminManagePosts = () => {
                             </span>
                           </td>
                           <td className="py-3 px-4 hidden md:table-cell">
-                            {new Date(article.publishedAt).toLocaleDateString()}
+                            {/* Handle null date for display */}
+                            {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'N/A'}
                           </td>
                           <td className="py-3 px-4 hidden md:table-cell">
-                            {article.views}
+                            {article.views ?? 0} {/* Handle null views for display */}
                           </td>
                           <td className="py-3 px-4 hidden md:table-cell">
                             {article.featured ? (

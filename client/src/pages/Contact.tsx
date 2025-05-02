@@ -169,7 +169,7 @@ const Contact = () => {
                     
                     <button 
                       type="submit" 
-                      className="bg-primary hover:bg-primary-dark dark:bg-accent dark:hover:bg-accent-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg disabled:opacity-70"
+                      className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-base py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70 disabled:hover:shadow-lg disabled:hover:translate-y-0"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -201,11 +201,26 @@ const Contact = () => {
                       </div>
                       <div>
                         <h3 className="font-heading font-bold text-lg mb-1">Email Us</h3>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          <a href="mailto:contact@divetech.com" className="hover:text-primary dark:hover:text-accent transition-colors">
-                            contact@divetech.com
-                          </a>
-                        </p>
+                        <a href="mailto:divetech@gmail.com"
+                           className="inline-flex items-center justify-center py-2 px-4 mt-1 text-sm font-medium rounded-full text-white bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 transition-all duration-300 shadow hover:shadow-md">
+                           Send Email
+                        </a>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mr-3 mt-1">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                          <i className="fab fa-whatsapp text-primary dark:text-accent"></i>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-bold text-lg mb-1">WhatsApp Us</h3>
+                        <a href="https://wa.me/254757937999"
+                           target="_blank" rel="noopener noreferrer"
+                           className="inline-flex items-center justify-center py-2 px-4 mt-1 text-sm font-medium rounded-full text-white bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 transition-all duration-300 shadow hover:shadow-md">
+                           Chat on WhatsApp
+                        </a>
                       </div>
                     </div>
                     
@@ -218,8 +233,7 @@ const Contact = () => {
                       <div>
                         <h3 className="font-heading font-bold text-lg mb-1">Our Location</h3>
                         <p className="text-gray-600 dark:text-gray-400">
-                          123 Tech Avenue<br />
-                          San Francisco, CA 94107
+                          Nairobi, Kenya
                         </p>
                       </div>
                     </div>

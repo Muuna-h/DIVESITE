@@ -1,10 +1,58 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import pgSession from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import pg from 'pg';
+import path from "path";
+import cors from 'cors';
+const { Pool } = pg;
+
+// Initialize PostgreSQL session store
+const PgStore = pgSession(session);
+
+// Create pool with proper typing
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 const app = express();
+
+// Enable CORS for development
+const isDev = process.env.NODE_ENV !== 'production';
+app.use(cors({
+  origin: isDev ? 'http://localhost:3000' : false,
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Set up session middleware
+app.use(session({
+  store: new PgStore({
+    pool,
+    tableName: 'session' // Use this table for storing session data
+  }),
+  secret: process.env.SESSION_SECRET || 'creative-tech-blog-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    secure: process.env.NODE_ENV === 'production', // Set to true in production with HTTPS
+    httpOnly: true,
+    sameSite: 'lax'
+  }
+}));
+
+// Debug middleware for session
+app.use((req, res, next) => {
+  console.log('Session ID:', req.sessionID);
+  console.log('isAuthenticated:', req.isAuthenticated?.());
+  console.log('Session:', req.session);
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -36,6 +84,28 @@ app.use((req, res, next) => {
   next();
 });
 
+// Test database connection
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    res.json({
+      success: true,
+      message: 'Database connection verified',
+      timestamp: result.rows[0]
+    });
+  } catch (error: any) {
+    console.error('Database error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection error',
+      error: error.message
+    });
+  }
+});
+
+// Serve static files from public directory
+app.use(express.static(path.join(process.cwd(), 'public')));
+
 (async () => {
   const server = await registerRoutes(app);
 
@@ -56,15 +126,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  // Set up the server to listen on the appropriate port
+  const port = process.env.PORT || 3000;
+  server.listen(port, () => {
     log(`serving on port ${port}`);
   });
 })();

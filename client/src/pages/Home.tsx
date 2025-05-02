@@ -5,10 +5,17 @@ import CategoriesShowcase from "@/components/CategoriesShowcase";
 import LatestArticles from "@/components/LatestArticles";
 import ServicesSection from "@/components/ServicesSection";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import { motion } from "framer-motion";
+import { pageTransition } from "@/utils/animations";
 
 const Home = () => {
   return (
-    <>
+    <motion.div
+      variants={pageTransition}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
       <Helmet>
         <title>Dive Tech - Dive Into Tomorrow's Tech</title>
         <meta name="description" content="Explore the latest in tech innovations across IT, software development, hardware, emerging technologies and more." />
@@ -23,7 +30,7 @@ const Home = () => {
       <CategoriesShowcase />
       <LatestArticles />
       <NewsletterSignup />
-    </>
+    </motion.div>
   );
 };
 

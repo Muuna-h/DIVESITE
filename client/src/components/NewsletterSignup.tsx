@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { container, fadeUp, scaleUp, scrollTriggerOptions } from "@/utils/animations";
 
 const NewsletterSignup = () => {
   const [email, setEmail] = useState("");
@@ -43,7 +44,12 @@ const NewsletterSignup = () => {
   };
 
   return (
-    <section className="py-16 bg-primary dark:bg-primary-dark relative overflow-hidden">
+    <motion.section 
+      className="py-16 bg-primary dark:bg-primary-dark relative overflow-hidden"
+      initial="hidden"
+      whileInView="visible"
+      viewport={scrollTriggerOptions}
+    >
       {/* Decorative geometric elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <motion.div 
@@ -85,11 +91,28 @@ const NewsletterSignup = () => {
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-2xl mx-auto text-center text-white">
-          <h2 className="font-heading text-3xl font-bold mb-4">Stay Updated with Tech Trends</h2>
-          <p className="text-white/80 mb-8">Join our newsletter to receive the latest articles, insights, and tech news directly in your inbox.</p>
+        <motion.div 
+          className="max-w-2xl mx-auto text-center text-white"
+          variants={container}
+        >
+          <motion.h2 
+            className="font-heading text-3xl font-bold mb-4"
+            variants={fadeUp}
+          >
+            Stay Updated with Tech Trends
+          </motion.h2>
+          <motion.p 
+            className="text-white/80 mb-8"
+            variants={fadeUp}
+          >
+            Join our newsletter to receive the latest articles, insights, and tech news directly in your inbox.
+          </motion.p>
           
-          <form className="flex flex-col sm:flex-row gap-3 mb-4" onSubmit={handleSubmit}>
+          <motion.form 
+            className="flex flex-col sm:flex-row gap-3 mb-4" 
+            onSubmit={handleSubmit}
+            variants={scaleUp}
+          >
             <input 
               type="email" 
               placeholder="Your email address" 
@@ -98,10 +121,12 @@ const NewsletterSignup = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <button 
+            <motion.button 
               type="submit" 
               className="bg-accent hover:bg-accent-dark text-primary font-bold py-3 px-6 rounded-lg transition-colors duration-300 disabled:opacity-70"
               disabled={isSubmitting}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center">
@@ -110,13 +135,18 @@ const NewsletterSignup = () => {
               ) : (
                 "Subscribe"
               )}
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
           
-          <p className="text-white/60 text-sm">We respect your privacy. Unsubscribe at any time.</p>
-        </div>
+          <motion.p 
+            className="text-white/60 text-sm"
+            variants={fadeUp}
+          >
+            We respect your privacy. Unsubscribe at any time.
+          </motion.p>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

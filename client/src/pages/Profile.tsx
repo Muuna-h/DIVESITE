@@ -16,12 +16,12 @@ const ProfilePage = () => {
       {
         degree: "Bachelor of Microprocessor Technology & Instrumentation",
         institution: "University of Nairobi",
-        year: "2018"
+        year: ""
       },
       {
         degree: "Full-Stack Web Development",
         institution: "Tech Bootcamp Academy",
-        year: "2020"
+        year: ""
       }
     ],
     experience: [
@@ -155,19 +155,27 @@ const ProfilePage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
-                className="flex justify-center md:justify-start space-x-4"
+                className="flex justify-center md:justify-start space-x-3"
               >
-                <a href="#" className="text-white hover:text-accent transition-colors duration-300">
-                  <i className="fab fa-linkedin text-xl"></i>
+                <a href="https://wa.me/254757937999" target="_blank" rel="noopener noreferrer" 
+                   className="inline-flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-md text-white hover:text-accent bg-white/5 hover:bg-white/10 transition-colors duration-300">
+                  <i className="fab fa-whatsapp mr-1.5"></i>
+                  <span>WhatsApp</span>
                 </a>
-                <a href="#" className="text-white hover:text-accent transition-colors duration-300">
-                  <i className="fab fa-twitter text-xl"></i>
+                <a href="https://twitter.com/DiveTechBlog" target="_blank" rel="noopener noreferrer" 
+                   className="inline-flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-md text-white hover:text-accent bg-white/5 hover:bg-white/10 transition-colors duration-300">
+                  <i className="fab fa-twitter mr-1.5"></i>
+                  <span>Twitter</span>
                 </a>
-                <a href="#" className="text-white hover:text-accent transition-colors duration-300">
-                  <i className="fab fa-github text-xl"></i>
+                <a href="https://github.com/Muuna-h" target="_blank" rel="noopener noreferrer" 
+                   className="inline-flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-md text-white hover:text-accent bg-white/5 hover:bg-white/10 transition-colors duration-300">
+                  <i className="fab fa-github mr-1.5"></i>
+                  <span>GitHub</span>
                 </a>
-                <a href="#" className="text-white hover:text-accent transition-colors duration-300">
-                  <i className="fas fa-envelope text-xl"></i>
+                <a href="mailto:divetech@gmail.com" 
+                   className="inline-flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-md text-white hover:text-accent bg-white/5 hover:bg-white/10 transition-colors duration-300">
+                  <i className="fas fa-envelope mr-1.5"></i>
+                  <span>Email</span>
                 </a>
               </motion.div>
             </div>
@@ -260,8 +268,98 @@ const ProfilePage = () => {
             I offer professional web development services tailored to your specific needs. Each project is built with modern technologies and best practices.
           </motion.p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {authorData.services.map((service, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {[
+              {
+                title: "Simple Website",
+                description: "Clean, professional websites with essential pages and features for small businesses and personal brands.",
+                features: [
+                  "Responsive design",
+                  "5-7 pages (Home, About, Services, Contact, etc.)",
+                  "Contact form",
+                  "SEO basics",
+                  "Social media integration"
+                ],
+                price: "Starting at Ksh 40,000",
+                icon: "fa-globe",
+                color: "from-blue-400 to-cyan-500",
+              },
+              {
+                title: "E-Commerce Websites",
+                description: "Custom online stores with seamless shopping experiences, secure payment processing, and inventory management.",
+                features: [
+                  "Mobile responsive design",
+                  "Product management",
+                  "Secure payment integration",
+                  "Order tracking",
+                  "Customer accounts",
+                  "SEO optimization"
+                ],
+                price: "Starting at Ksh 120,000",
+                icon: "fa-shopping-cart",
+                color: "from-blue-500 to-indigo-600",
+              },
+              {
+                title: "Business Websites",
+                description: "Corporate sites that effectively showcase your services, build credibility, and convert visitors to customers.",
+                features: [
+                  "Professional design",
+                  "Service/product showcases",
+                  "Team profiles",
+                  "Testimonials",
+                  "Contact forms",
+                  "Analytics integration"
+                ],
+                price: "Starting at Ksh 70,000",
+                icon: "fa-briefcase",
+                color: "from-purple-500 to-pink-600",
+              },
+              {
+                title: "Blog Platforms",
+                description: "Professional content management systems with responsive design, SEO optimization, and easy content updates.",
+                features: [
+                  "Custom design",
+                  "Content management system",
+                  "SEO optimization",
+                  "Social media integration",
+                  "Comment management",
+                  "Analytics integration"
+                ],
+                price: "Starting at Ksh 60,000",
+                icon: "fa-blog",
+                color: "from-green-500 to-teal-500",
+              },
+              {
+                title: "Web Applications",
+                description: "Custom web apps with user authentication, data management, and modern technology stacks tailored to your needs.",
+                features: [
+                  "User authentication",
+                  "Database integration",
+                  "API development",
+                  "Custom functionality",
+                  "Ongoing support",
+                  "Deployment setup"
+                ],
+                price: "Starting at Ksh 200,000",
+                icon: "fa-laptop-code",
+                color: "from-amber-500 to-orange-600",
+              },
+              {
+                title: "Portfolio Websites",
+                description: "Showcase your work, skills, and achievements with a professional portfolio website.",
+                features: [
+                  "Project gallery",
+                  "Resume/CV section",
+                  "Testimonials",
+                  "Contact form",
+                  "Social media integration",
+                  "Blog option"
+                ],
+                price: "Starting at Ksh 50,000",
+                icon: "fa-id-badge",
+                color: "from-purple-400 to-pink-500",
+              }
+            ].map((service, index) => (
               <motion.div
                 key={index}
                 className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300"
@@ -269,8 +367,11 @@ const ProfilePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
               >
-                <div className="h-2 bg-gradient-to-r from-primary to-accent"></div>
+                <div className={`h-2 bg-gradient-to-r ${service.color}`}></div>
                 <div className="p-6">
+                  <div className={`w-14 h-14 rounded-full bg-gradient-to-r ${service.color} flex items-center justify-center text-white mb-6`}>
+                    <i className={`fas ${service.icon} text-xl`}></i>
+                  </div>
                   <h3 className="font-heading text-xl font-bold mb-3">{service.title}</h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
                     {service.description}
@@ -283,10 +384,12 @@ const ProfilePage = () => {
                       </li>
                     ))}
                   </ul>
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">{service.price}</span>
-                    <Link href="/contact" className="bg-primary hover:bg-primary-dark dark:bg-accent dark:hover:bg-accent-dark text-white px-4 py-2 rounded-lg">
-                      Get Started
+                  <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <span className="font-bold text-lg text-primary dark:text-accent">{service.price}</span>
+                    <Link href="/contact">
+                      <a className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-sm py-2 px-4 rounded-full transition-all duration-300 shadow hover:shadow-md inline-flex items-center">
+                        Inquire <i className="fas fa-arrow-right ml-1.5"></i>
+                      </a>
                     </Link>
                   </div>
                 </div>
@@ -295,20 +398,80 @@ const ProfilePage = () => {
           </div>
           
           <motion.div 
-            className="text-center mt-12"
+            className="mt-20 relative"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <h3 className="font-heading text-2xl font-bold mb-4">
-              Need a custom solution?
+            <div className="bg-gray-900 dark:bg-gray-800 rounded-2xl overflow-hidden relative z-10">
+              {/* Background design elements */}
+              <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 right-0 w-60 h-60 bg-gradient-to-r from-teal-400/20 to-green-500/20 rounded-full blur-3xl"></div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('/grid-pattern.svg')] opacity-5"></div>
+              
+              <div className="relative z-10 px-8 py-16 md:py-20 text-center">
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.6 }}
+                  className="max-w-3xl mx-auto"
+                >
+                  <h3 className="font-heading text-3xl md:text-4xl font-bold mb-6 text-white">
+                    Need a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">Custom Solution?</span>
             </h3>
-            <p className="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto mb-8">
-              Contact me to discuss your project requirements and get a personalized quote.
-            </p>
-            <Link href="/contact" className="bg-primary hover:bg-primary-dark dark:bg-accent dark:hover:bg-accent-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg inline-flex items-center">
-              Contact Me <i className="fas fa-arrow-right ml-2"></i>
+                  <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10">
+                    Contact me to discuss your project requirements and get a personalized quote. Let's create something amazing together!
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <motion.div
+                      whileHover={{ translateY: -5, boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="transition-all duration-300"
+                    >
+                      <Link href="/contact">
+                        <a className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-base py-3 px-8 rounded-full shadow-lg inline-flex items-center justify-center">
+                          Get in Touch <i className="fas fa-arrow-right ml-2"></i>
+                        </a>
             </Link>
+                    </motion.div>
+                    
+                    <motion.div
+                      whileHover={{ translateY: -5, boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="transition-all duration-300"
+                    >
+                      <a 
+                        href="https://wa.me/254757937999" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 text-white font-medium text-base py-3 px-8 rounded-full shadow-lg inline-flex items-center justify-center"
+                      >
+                        <i className="fab fa-whatsapp mr-2"></i> WhatsApp Me
+                      </a>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+            
+            {/* Decorative dots */}
+            <div className="hidden md:block absolute -top-4 -left-4 w-8 h-8">
+              <div className="grid grid-cols-2 gap-1">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              </div>
+            </div>
+            <div className="hidden md:block absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="grid grid-cols-2 gap-1">
+                <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+                <div className="w-2 h-2 rounded-full bg-teal-400"></div>
+                <div className="w-2 h-2 rounded-full bg-teal-400"></div>
+                <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

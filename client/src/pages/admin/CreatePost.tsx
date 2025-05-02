@@ -26,6 +26,18 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Category } from "@shared/schema";
+import ImageUpload from "@/components/ui/image-upload";
+
+// Define the expected shape of the user data from the API
+interface UserResponse {
+  user: {
+    id: number;
+    username: string;
+    name?: string | null;
+    role?: string | null;
+    // Add other fields if needed
+  } | null;
+}
 
 const AdminCreatePost = () => {
   const [formData, setFormData] = useState({
@@ -47,8 +59,8 @@ const AdminCreatePost = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query for the current user
-  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery({
+  // Query for the current user with explicit type
+  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery<UserResponse>({
     queryKey: ['/api/auth/me'],
   });
 
@@ -67,7 +79,7 @@ const AdminCreatePost = () => {
 
   // Create article mutation
   const createArticle = useMutation({
-    mutationFn: (articleData: typeof formData) => {
+    mutationFn: (articleData: Omit<typeof formData, 'categoryId'> & { categoryId: number }) => {
       return apiRequest("POST", "/api/articles", articleData);
     },
     onSuccess: async (response) => {
@@ -163,6 +175,14 @@ const AdminCreatePost = () => {
     }));
   };
 
+  // Add handler for image uploads
+  const handleImageUploaded = (imageUrl: string, field: keyof typeof formData) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: imageUrl
+    }));
+  };
+
   // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,7 +216,7 @@ const AdminCreatePost = () => {
     );
   }
 
-  if (!userData || !userData.user) {
+  if (!userData?.user) {
     return null; // Will redirect in useEffect
   }
 
@@ -284,7 +304,7 @@ const AdminCreatePost = () => {
                   <CardHeader>
                     <CardTitle>Images</CardTitle>
                     <CardDescription>
-                      Add visuals to enhance your article
+                      Upload article images
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -292,13 +312,10 @@ const AdminCreatePost = () => {
                       <Label htmlFor="image">
                         Thumbnail Image <span className="text-red-500">*</span>
                       </Label>
-                      <Input
-                        id="image"
-                        name="image"
-                        value={formData.image}
-                        onChange={handleChange}
-                        placeholder="Enter image URL"
-                        required
+                      <ImageUpload 
+                        currentImage={formData.image} 
+                        onImageUploaded={(url) => handleImageUploaded(url, 'image')} 
+                        label="Upload Thumbnail Image"
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         This is the main image displayed in cards and at the top of the article
@@ -308,34 +325,28 @@ const AdminCreatePost = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                       <div className="space-y-2">
                         <Label htmlFor="topImage">Top Image (Optional)</Label>
-                        <Input
-                          id="topImage"
-                          name="topImage"
-                          value={formData.topImage}
-                          onChange={handleChange}
-                          placeholder="Enter image URL"
+                        <ImageUpload 
+                          currentImage={formData.topImage} 
+                          onImageUploaded={(url) => handleImageUploaded(url, 'topImage')}
+                          label="Upload Top Image"
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="midImage">Mid-Article Image (Optional)</Label>
-                        <Input
-                          id="midImage"
-                          name="midImage"
-                          value={formData.midImage}
-                          onChange={handleChange}
-                          placeholder="Enter image URL"
+                        <ImageUpload 
+                          currentImage={formData.midImage} 
+                          onImageUploaded={(url) => handleImageUploaded(url, 'midImage')}
+                          label="Upload Mid Image"
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="bottomImage">Bottom Image (Optional)</Label>
-                        <Input
-                          id="bottomImage"
-                          name="bottomImage"
-                          value={formData.bottomImage}
-                          onChange={handleChange}
-                          placeholder="Enter image URL"
+                        <ImageUpload 
+                          currentImage={formData.bottomImage} 
+                          onImageUploaded={(url) => handleImageUploaded(url, 'bottomImage')}
+                          label="Upload Bottom Image"
                         />
                       </div>
                     </div>

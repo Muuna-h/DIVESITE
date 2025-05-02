@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import ArticleCard from "./ArticleCard";
 import { useQuery } from "@tanstack/react-query";
 import { Article } from "@shared/schema";
+import { fadeUp, container, scaleUp, scrollTriggerOptions } from "@/utils/animations";
+import { Link } from "wouter";
 
 const FeaturedArticles = () => {
   const [position, setPosition] = useState(0);
@@ -90,53 +92,77 @@ const FeaturedArticles = () => {
   };
 
   return (
-    <section id="featured" className="py-16 bg-white dark:bg-gray-900">
+    <motion.section 
+      id="featured" 
+      className="py-16 bg-white dark:bg-gray-900"
+      initial="hidden"
+      whileInView="visible"
+      viewport={scrollTriggerOptions}
+      variants={container}
+    >
       <div className="container mx-auto px-4">
-        <h2 className="font-heading text-3xl font-bold mb-8 text-center">
+        <motion.h2 
+          className="font-heading text-3xl font-bold mb-8 text-center"
+          variants={fadeUp}
+        >
           Featured <span className="text-primary dark:text-accent">Articles</span>
-        </h2>
+        </motion.h2>
         
-        <div className="relative">
+        <motion.div className="relative" variants={scaleUp}>
           {/* Slider controls */}
-          <button 
+          <motion.button 
             className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 rounded-full p-3 shadow-lg text-primary dark:text-accent hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none" 
             onClick={prev}
             aria-label="Previous articles"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
           >
             <i className="fas fa-chevron-left"></i>
-          </button>
+          </motion.button>
           
           {/* Featured articles slider */}
-          <div className="overflow-hidden px-12" ref={sliderRef}>
+          <div className="overflow-hidden px-4 sm:px-12" ref={sliderRef}>
             <motion.div 
               className="flex"
-              animate={{ x: -position * (100 / itemsPerSlide) + '%' }}
+              animate={{ x: `-${position * 100}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {articles.map((article, index) => (
-                <div 
+                <motion.div 
                   key={article.id || index} 
-                  className={`w-full md:w-1/2 lg:w-1/3 p-4 flex-shrink-0`}
+                  className={`w-full flex-shrink-0 p-2 sm:p-4`}
+                  style={{ flexBasis: `${100 / itemsPerSlide}%` }}
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <ArticleCard article={article as Article} />
-                </div>
+                  <Link href={`/article/${article.slug}`}>
+                    <a>
+                      <ArticleCard article={article as Article} />
+                    </a>
+                  </Link>
+                </motion.div>
               ))}
             </motion.div>
           </div>
           
-          <button 
+          <motion.button 
             className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 rounded-full p-3 shadow-lg text-primary dark:text-accent hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none" 
             onClick={next}
             aria-label="Next articles"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
           >
             <i className="fas fa-chevron-right"></i>
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
         
         {/* Slider dots */}
-        <div className="flex justify-center mt-8 space-x-2">
+        <motion.div 
+          className="flex justify-center mt-8 space-x-2"
+          variants={fadeUp}
+        >
           {Array.from({ length: maxPosition + 1 }).map((_, index) => (
-            <button 
+            <motion.button 
               key={index}
               className={`h-2.5 w-2.5 rounded-full ${
                 position === index 
@@ -146,11 +172,13 @@ const FeaturedArticles = () => {
               aria-current={position === index}
               aria-label={`Slide ${index + 1}`}
               onClick={() => goToSlide(index)}
-            ></button>
+              whileHover={{ scale: 1.5 }}
+              whileTap={{ scale: 0.9 }}
+            ></motion.button>
           ))}
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
