@@ -56,6 +56,10 @@
   body {
     @apply bg-secondary text-foreground font-sans antialiased;
     font-family: 'Poppins', sans-serif;
+    background-image: url('/tech-background.svg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -86,6 +90,40 @@
   /* Text gradient styling */
   .text-gradient {
     @apply bg-clip-text text-transparent;
+  }
+
+  /* Modern card styling */
+  .modern-card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg relative overflow-hidden;
+    background-image: url('/grid-pattern.svg');
+    background-size: 100px 100px;
+    background-repeat: repeat;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  /* Glass morphism effect */
+  .glass-morph {
+    @apply backdrop-blur-md bg-white/70 dark:bg-gray-900/70 border border-white/20 dark:border-gray-800/30;
+  }
+
+  /* Section styling with subtle pattern */
+  .patterned-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .patterned-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/grid-pattern.svg');
+    background-size: 100px 100px;
+    opacity: 0.5;
+    z-index: -1;
   }
 }
 
