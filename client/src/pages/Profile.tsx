@@ -28,19 +28,19 @@ const ProfilePage = () => {
       {
         position: "IT Manager & Web Developer",
         company: "Asili Marketplace",
-        period: "2021 - Present",
+        period: "",
         description: "Building and managing the company website, implementing technology solutions, and overseeing IT infrastructure. Leading development of e-commerce and digital marketing strategies."
       },
       {
         position: "Web Developer",
         company: "Dive Tech",
-        period: "2022 - Present",
+        period: "",
         description: "Developing responsive websites and web applications using modern JavaScript frameworks. Leading frontend development and implementing database solutions."
       },
       {
         position: "Junior Developer",
-        company: "Digital Solutions Agency",
-        period: "2019 - 2021",
+        company: "DiveTech Agency",
+        period: "",
         description: "Created websites for small to medium businesses, implemented e-commerce solutions, and managed client websites."
       }
     ],
