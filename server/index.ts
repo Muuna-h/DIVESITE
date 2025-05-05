@@ -84,6 +84,11 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/', (req: Request, res: Response) => {
+  res.send('🚀 DiveTech backend is running!');
+});
+
+
 // Test database connection
 app.get('/api/test-db', async (req, res) => {
   try {
