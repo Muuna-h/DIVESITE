@@ -20,14 +20,26 @@ const pool = new Pool({
 const app = express();
 
 // Enable CORS for development
-const isDev = process.env.NODE_ENV !== 'production';
+// CORS Configuration Section
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.FRONTEND_URL || 'https://divetech-five.vercel.app/' // Update with your actual Vercel domain
+];
+
 app.use(cors({
-  origin: isDev ? 'http://localhost:3000' : false,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 // Set up session middleware
 app.use(session({

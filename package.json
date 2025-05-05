@@ -12,7 +12,8 @@
     "db:seed": "tsx server/seed.ts",
     "db:init": "tsx scripts/init-db.ts",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist/client"
+    "deploy": "dist/public",
+    "vercel-build": "vite build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -116,5 +117,8 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
