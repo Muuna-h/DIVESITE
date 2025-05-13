@@ -1,18 +1,34 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-neonConfig.webSocketConstructor = ws;
-
-if (!process.env.DATABASE_URL) {
+// Validate environment variables
+if (!process.env.SUPABASE_URL) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "SUPABASE_URL must be set. Did you forget to set your Supabase connection details?",
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+if (!process.env.SUPABASE_KEY) {
+  throw new Error(
+    "SUPABASE_KEY must be set. Did you forget to set your Supabase API key?",
+  );
+}
+
+// For use with Supabase via postgres.js
+const connectionString = process.env.SUPABASE_URL;
+
+// Use postgres.js as the SQL driver
+export const client = postgres(connectionString, {
+  ssl: 'require',
+  headers: {
+    apikey: process.env.SUPABASE_KEY
+  }
+});
+
+// Initialize Drizzle with the postgres client and schema
+export const db = drizzle(client, { schema });
