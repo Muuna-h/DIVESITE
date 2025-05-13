@@ -28,6 +28,7 @@ const FeaturedArticles = () => {
         // Use the full URL to bypass potential proxying issues
         // Replace with your actual deployed URL or use the current window.location
         const baseUrl = window.location.origin; // Gets the current domain
+        // Use the correct API endpoint path with /api prefix
         const apiUrl = `${baseUrl}/api/articles/featured?_t=${timestamp}`;
         
         console.log(`Requesting featured articles from: ${apiUrl}`);

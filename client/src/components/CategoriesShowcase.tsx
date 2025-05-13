@@ -22,6 +22,7 @@ const CategoriesShowcase = () => {
         
         // Use the full URL to bypass potential proxying issues
         const baseUrl = window.location.origin;
+        // Make sure the API endpoint path is correct
         const apiUrl = `${baseUrl}/api/categories?includeDetails=true&_t=${timestamp}`;
         
         console.log(`Requesting categories from: ${apiUrl}`);
