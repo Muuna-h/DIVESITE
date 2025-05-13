@@ -1,6 +1,9 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
+import { categories, articles, users } from "@shared/schema";
 import session from "express-session";
 import memorystore from "memorystore";
 import passport from "passport";
@@ -229,11 +232,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Category routes
   app.get("/api/categories", async (req: Request, res: Response) => {
     try {
-      // Set cache control headers to prevent caching
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.setHeader('Surrogate-Control', 'no-store');
+      // Check database connection first
+      const dbConnected = await checkDatabaseConnection();
+      if (!dbConnected) {
+        return sendSafeJSONResponse(res, { 
+          error: 'Database connection error', 
+          message: 'Failed to connect to the database. Check your Supabase configuration.',
+          categories: [] 
+        });
+      }
       
       // Check for includeDetails query parameter
       const includeDetails = req.query.includeDetails === 'true';
@@ -252,13 +259,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         image: cat.image
       }));
       
-      // Set content type and respond with stringified JSON
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ categories: simplifiedCategories }));
+      // Use our safe JSON response helper
+      sendSafeJSONResponse(res, { categories: simplifiedCategories });
     } catch (error) {
       console.error("Error fetching categories:", error);
-      // Return a valid JSON object even in error case
-      res.status(500).json({ message: "Error fetching categories", categories: [] });
+      // Use our safe JSON response helper for errors too
+      sendSafeJSONResponse(res, { 
+        error: 'Failed to fetch categories', 
+        message: error instanceof Error ? error.message : String(error),
+        categories: [] 
+      });
     }
   });
 
@@ -339,13 +349,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   };
 
-  app.get("/api/articles/featured", async (req: Request, res: Response) => {
+  // Function to safely send JSON response with proper headers
+  const sendSafeJSONResponse = (res: Response, data: any) => {
     try {
-      // Set cache control headers to prevent caching
+      // Set cache control headers
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
       res.setHeader('Surrogate-Control', 'no-store');
+      
+      // Set content type explicitly
+      res.setHeader('Content-Type', 'application/json');
+      
+      // Stringify the data safely and send
+      const jsonString = safeJSONStringify(data);
+      res.end(jsonString);
+    } catch (error) {
+      console.error('Error sending JSON response:', error);
+      // If JSON stringification fails, send a simple error
+      res.status(500).send(JSON.stringify({ 
+        error: 'Server error while formatting response',
+        message: error instanceof Error ? error.message : String(error) 
+      }));
+    }
+  };
+  
+  // Add a diagnostic endpoint to test database connectivity
+  app.get("/api/diagnostics", async (req: Request, res: Response) => {
+    try {
+      // Try to connect to the database and run a simple query
+      const dbConnected = await checkDatabaseConnection();
+      
+      // Collect environment information (safely, not exposing secrets)
+      const envInfo = {
+        nodeEnv: process.env.NODE_ENV || 'not set',
+        hasSupabaseUrl: !!process.env.SUPABASE_URL,
+        hasSupabaseKey: !!process.env.SUPABASE_KEY
+      };
+      
+      sendSafeJSONResponse(res, {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        database: {
+          connected: dbConnected,
+          type: 'Supabase PostgreSQL'
+        },
+        environment: envInfo
+      });
+    } catch (error) {
+      console.error('Diagnostics error:', error);
+      sendSafeJSONResponse(res, {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Helper function to check database connection
+  async function checkDatabaseConnection() {
+    try {
+      // Try a simple query to verify database connection
+      await db.select({ count: sql`COUNT(*)` }).from(categories);
+      return true;
+    } catch (error) {
+      console.error('Database connection check failed:', error);
+      return false;
+    }
+  }
+
+  app.get("/api/articles/featured", async (req: Request, res: Response) => {
+    try {
+      // Check database connection first
+      const dbConnected = await checkDatabaseConnection();
+      if (!dbConnected) {
+        return sendSafeJSONResponse(res, { 
+          error: 'Database connection error', 
+          message: 'Failed to connect to the database. Check your Supabase configuration.',
+          articles: [] 
+        });
+      }
       
       const articlesData = await storage.getFeaturedArticles();
       
@@ -375,23 +458,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       }));
       
-      // Set content type and respond with stringified JSON
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ articles: simplifiedArticles }));
+      // Use our safe JSON response helper
+      sendSafeJSONResponse(res, { articles: simplifiedArticles });
     } catch (error) {
       console.error("Error fetching featured articles:", error);
-      // Return a valid JSON object even in error case
-      res.status(500).json({ message: "Error fetching featured articles", articles: [] });
+      // Use our safe JSON response helper for errors too
+      sendSafeJSONResponse(res, { 
+        error: 'Failed to fetch featured articles', 
+        message: error instanceof Error ? error.message : String(error),
+        articles: [] 
+      });
     }
   });
 
   app.get("/api/articles/latest", async (req: Request, res: Response) => {
     try {
-      // Set cache control headers to prevent caching
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.setHeader('Surrogate-Control', 'no-store');
+      // Check database connection first
+      const dbConnected = await checkDatabaseConnection();
+      if (!dbConnected) {
+        return sendSafeJSONResponse(res, { 
+          error: 'Database connection error', 
+          message: 'Failed to connect to the database. Check your Supabase configuration.',
+          articles: [] 
+        });
+      }
       
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 6;
       const articlesData = await storage.getLatestArticles(limit);
@@ -422,13 +512,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       }));
       
-      // Set content type and respond with stringified JSON
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ articles: simplifiedArticles }));
+      // Use our safe JSON response helper
+      sendSafeJSONResponse(res, { articles: simplifiedArticles });
     } catch (error) {
       console.error("Error fetching latest articles:", error);
-      // Return a valid JSON object even in error case
-      res.status(500).json({ message: "Error fetching latest articles", articles: [] });
+      // Use our safe JSON response helper for errors too
+      sendSafeJSONResponse(res, { 
+        error: 'Failed to fetch latest articles', 
+        message: error instanceof Error ? error.message : String(error),
+        articles: [] 
+      });
     }
   });
 
