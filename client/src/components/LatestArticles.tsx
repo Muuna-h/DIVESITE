@@ -54,10 +54,30 @@ const LatestArticles = () => {
         // Log raw response for debugging
         console.log('Raw latest articles API response:', text.substring(0, 100) + '...');
         
-        // Try to parse it as JSON
+        // Try to parse it as JSON, with fallback for JSON embedded in HTML
         let jsonData;
         try {
-          jsonData = JSON.parse(text);
+          // First attempt: direct parse
+          try {
+            jsonData = JSON.parse(text);
+          } catch (directError) {
+            // Second attempt: try to extract JSON from HTML
+            console.log('Attempting to extract JSON from HTML response for latest articles...');
+            
+            // Look for JSON pattern in HTML response (without using 's' flag for compatibility)
+            const jsonPattern1 = new RegExp('\\{\\s*"articles"\\s*:\\s*\\[([\\s\\S]*?)\\]\\s*\\}');
+            const jsonPattern2 = new RegExp('\\{\\s*"categories"\\s*:\\s*\\[([\\s\\S]*?)\\]\\s*\\}');
+            
+            const jsonMatch = text.match(jsonPattern1) || text.match(jsonPattern2);
+                             
+            if (jsonMatch) {
+              console.log('Found potential JSON in HTML for latest articles:', jsonMatch[0].substring(0, 50) + '...');
+              jsonData = JSON.parse(jsonMatch[0]);
+              console.log('Successfully extracted JSON from HTML for latest articles');
+            } else {
+              throw new Error('Could not find latest articles JSON data in HTML response');
+            }
+          }
         } catch (error) {
           // Ensure error is treated as an Error object
           const parseError = error instanceof Error ? error : new Error(String(error));
