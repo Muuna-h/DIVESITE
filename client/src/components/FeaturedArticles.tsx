@@ -24,18 +24,54 @@ const FeaturedArticles = () => {
       try {
         // Add cache-busting timestamp parameter to the URL
         const timestamp = new Date().getTime();
-        const res = await fetch(`/api/articles/featured?_t=${timestamp}`, {
-          // Add cache-busting headers
+        
+        // Use the full URL to bypass potential proxying issues
+        // Replace with your actual deployed URL or use the current window.location
+        const baseUrl = window.location.origin; // Gets the current domain
+        const apiUrl = `${baseUrl}/api/articles/featured?_t=${timestamp}`;
+        
+        console.log(`Requesting featured articles from: ${apiUrl}`);
+        
+        const res = await fetch(apiUrl, {
+          // Add stronger cache-busting headers
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
-            'Expires': '0'
+            'Expires': '0',
+            'Accept': 'application/json'
           }
         });
         
-        if (!res.ok) throw new Error('Network response was not ok');
+        // Log the response status and headers for debugging
+        console.log(`Response status: ${res.status} ${res.statusText}`);
+        console.log('Response type:', res.headers.get('content-type'));
         
-        const jsonData = await res.json();
+        if (!res.ok) {
+          // Check if response is HTML (likely authentication page)
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('text/html')) {
+            throw new Error('Authentication error - please check Vercel deployment settings');
+          }
+          throw new Error(`API error: ${res.status} ${res.statusText}`);
+        }
+        
+        // Attempt to read the response text first for debugging
+        const text = await res.text();
+        
+        // Log raw response for debugging
+        console.log('Raw API response:', text.substring(0, 100) + '...');
+        
+        // Try to parse it as JSON
+        let jsonData;
+        try {
+          jsonData = JSON.parse(text);
+        } catch (error) {
+          // Ensure error is treated as an Error object
+          const parseError = error instanceof Error ? error : new Error(String(error));
+          console.error('JSON parse error with response:', text);
+          throw new Error(`Invalid JSON response: ${parseError.message}`);
+        }
+        
         console.log('Featured Articles API Response:', jsonData);
         return jsonData; // Should be { articles: [...] }
       } catch (err) {

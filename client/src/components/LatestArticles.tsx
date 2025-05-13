@@ -6,32 +6,67 @@ import { Article } from "@shared/schema";
 import { container, fadeUp, scrollTriggerOptions } from "@/utils/animations";
 
 // Define response type for latest articles
-type LatestArticlesResponse = {
+type ArticleResponse = {
   articles: Article[];
   message?: string;
 };
 
 const LatestArticles = () => {
-  const { data, isLoading, error } = useQuery<LatestArticlesResponse>({
+  const { data, isLoading, error } = useQuery<ArticleResponse>({
     queryKey: ['/api/articles/latest'],
     queryFn: async () => {
       try {
         // Add cache-busting timestamp parameter to the URL
         const timestamp = new Date().getTime();
-        const res = await fetch(`/api/articles/latest?_t=${timestamp}`, {
+        
+        // Use the full URL to bypass potential proxying issues
+        const baseUrl = window.location.origin;
+        const apiUrl = `${baseUrl}/api/articles/latest?_t=${timestamp}`;
+        
+        console.log(`Requesting latest articles from: ${apiUrl}`);
+        
+        const res = await fetch(apiUrl, {
           // Add stronger cache-busting headers
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
-            'Expires': '0'
+            'Expires': '0',
+            'Accept': 'application/json'
           }
         });
         
-        if (!res.ok) throw new Error('Network response was not ok');
+        // Log the response status and headers for debugging
+        console.log(`Latest articles response status: ${res.status} ${res.statusText}`);
+        console.log('Latest articles response type:', res.headers.get('content-type'));
         
-        const jsonData = await res.json();
+        if (!res.ok) {
+          // Check if response is HTML (likely authentication page)
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('text/html')) {
+            throw new Error('Authentication error - please check Vercel deployment settings');
+          }
+          throw new Error(`API error: ${res.status} ${res.statusText}`);
+        }
+        
+        // Attempt to read the response text first for debugging
+        const text = await res.text();
+        
+        // Log raw response for debugging
+        console.log('Raw latest articles API response:', text.substring(0, 100) + '...');
+        
+        // Try to parse it as JSON
+        let jsonData;
+        try {
+          jsonData = JSON.parse(text);
+        } catch (error) {
+          // Ensure error is treated as an Error object
+          const parseError = error instanceof Error ? error : new Error(String(error));
+          console.error('JSON parse error with latest articles response:', text);
+          throw new Error(`Invalid JSON response: ${parseError.message}`);
+        }
+        
         console.log('Latest Articles API Response:', jsonData);
-        return jsonData; // Should now be { articles: [...] }
+        return jsonData; // Should be { articles: [...] }
       } catch (err) {
         console.error('Error fetching latest articles:', err);
         throw err;
