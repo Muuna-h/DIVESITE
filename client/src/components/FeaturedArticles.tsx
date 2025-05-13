@@ -12,11 +12,40 @@ const FeaturedArticles = () => {
   const [sliderWidth, setSliderWidth] = useState(0);
   const [itemsPerSlide, setItemsPerSlide] = useState(3);
   
-  const { data: featuredArticles, isLoading, error } = useQuery<Article[]>({
+  // Define response type for featured articles
+  type FeaturedArticlesResponse = {
+    articles: Article[];
+    message?: string;
+  };
+
+  const { data, isLoading, error } = useQuery<FeaturedArticlesResponse>({
     queryKey: ['/api/articles/featured'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/articles/featured', {
+          // Add cache-busting headers
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        
+        if (!res.ok) throw new Error('Network response was not ok');
+        
+        const jsonData = await res.json();
+        console.log('Featured Articles API Response:', jsonData);
+        return jsonData; // Should be { articles: [...] }
+      } catch (err) {
+        console.error('Error fetching featured articles:', err);
+        throw err;
+      }
+    },
     retry: 3,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+  
+  // Extract articles from the response
+  const featuredArticles = data?.articles || [];
 
   useEffect(() => {
     const handleResize = () => {
