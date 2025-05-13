@@ -22,11 +22,14 @@ const FeaturedArticles = () => {
     queryKey: ['/api/articles/featured'],
     queryFn: async () => {
       try {
-        const res = await fetch('/api/articles/featured', {
+        // Add cache-busting timestamp parameter to the URL
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/articles/featured?_t=${timestamp}`, {
           // Add cache-busting headers
           headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         });
         

@@ -17,11 +17,14 @@ const CategoriesShowcase = () => {
     queryKey: ['/api/categories?includeDetails=true'],
     queryFn: async () => {
       try {
-        const res = await fetch('/api/categories?includeDetails=true', {
-          // Add cache-busting query parameter
+        // Add cache-busting timestamp parameter to the URL
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/categories?includeDetails=true&_t=${timestamp}`, {
+          // Add stronger cache-busting headers
           headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         });
         
