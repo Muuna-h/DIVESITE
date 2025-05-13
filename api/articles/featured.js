@@ -1,6 +1,9 @@
-import { db } from '../../server/db.js';
-import { articles } from '../../shared/schema.js';
-import { sql } from 'drizzle-orm';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -23,24 +26,32 @@ export default async function handler(req, res) {
   }
   
   try {
-    // Check database connection
-    try {
-      await db.execute(sql`SELECT 1`);
-    } catch (dbError) {
-      console.error('Database connection error:', dbError);
+    // Check if Supabase is configured
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase configuration missing');
       return res.status(500).json({ 
-        error: 'Database connection error', 
-        message: 'Failed to connect to the database. Check your Supabase configuration.',
+        error: 'Configuration error', 
+        message: 'Supabase configuration is missing',
         articles: [] 
       });
     }
     
     // Fetch featured articles
-    const featuredArticles = await db.select()
-      .from(articles)
-      .where(sql`${articles.featured} = true`)
-      .orderBy(sql`${articles.publishedAt} DESC`)
+    const { data: featuredArticles, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('featured', true)
+      .order('publishedAt', { ascending: false })
       .limit(3);
+    
+    if (error) {
+      console.error('Database query error:', error);
+      return res.status(500).json({ 
+        error: 'Database query error', 
+        message: error.message,
+        articles: [] 
+      });
+    }
     
     console.log('Returning featured articles:', featuredArticles);
     
