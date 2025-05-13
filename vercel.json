@@ -1,16 +1,26 @@
 {
+  "version": 2,
   "buildCommand": "vite build",
   "devCommand": "npm run dev",
   "outputDirectory": "dist/public",
   "framework": "vite",
-  "rewrites": [
+  "functions": {
+    "api/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
