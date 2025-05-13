@@ -7,27 +7,25 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Validate environment variables
-if (!process.env.SUPABASE_URL) {
+if (!process.env.VITE_SUPABASE_URL) {
   throw new Error(
-    "SUPABASE_URL must be set. Did you forget to set your Supabase connection details?",
+    "VITE_SUPABASE_URL must be set. Did you forget to set your Supabase connection details?",
   );
 }
 
-if (!process.env.SUPABASE_KEY) {
+if (!process.env.VITE_SUPABASE_ANON_KEY) {
   throw new Error(
-    "SUPABASE_KEY must be set. Did you forget to set your Supabase API key?",
+    "VITE_SUPABASE_ANON_KEY must be set. Did you forget to set your Supabase API key?",
   );
 }
 
 // For use with Supabase via postgres.js
-const connectionString = process.env.SUPABASE_URL;
+// Create connection URL with authentication information included
+const connectionString = `${process.env.VITE_SUPABASE_URL}?apikey=${process.env.VITE_SUPABASE_ANON_KEY}`;
 
 // Use postgres.js as the SQL driver
 export const client = postgres(connectionString, {
-  ssl: 'require',
-  headers: {
-    apikey: process.env.SUPABASE_KEY
-  }
+  ssl: 'require'
 });
 
 // Initialize Drizzle with the postgres client and schema

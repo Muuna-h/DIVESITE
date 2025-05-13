@@ -5,12 +5,44 @@ import ArticleCard from "./ArticleCard";
 import { Article } from "@shared/schema";
 import { container, fadeUp, scrollTriggerOptions } from "@/utils/animations";
 
+// Define response type for latest articles
+type LatestArticlesResponse = {
+  articles: Article[];
+  message?: string;
+};
+
 const LatestArticles = () => {
-  const { data: latestArticles, isLoading, error } = useQuery<Article[]>({
+  const { data, isLoading, error } = useQuery<LatestArticlesResponse>({
     queryKey: ['/api/articles/latest'],
+    queryFn: async () => {
+      try {
+        // Add cache-busting timestamp parameter to the URL
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/articles/latest?_t=${timestamp}`, {
+          // Add stronger cache-busting headers
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
+        
+        if (!res.ok) throw new Error('Network response was not ok');
+        
+        const jsonData = await res.json();
+        console.log('Latest Articles API Response:', jsonData);
+        return jsonData; // Should now be { articles: [...] }
+      } catch (err) {
+        console.error('Error fetching latest articles:', err);
+        throw err;
+      }
+    },
     retry: 3,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+  
+  // Extract articles from the response
+  const latestArticles = data?.articles || [];
 
   // Only show loading state if we're actively fetching
   if (isLoading && !latestArticles) {

@@ -387,11 +387,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/articles/latest", async (req: Request, res: Response) => {
     try {
+      // Set cache control headers to prevent caching
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 6;
-      const articles = await storage.getLatestArticles(limit);
-      res.json(articles);
+      const articlesData = await storage.getLatestArticles(limit);
+
+      // Use a simplified approach with manually created simple structure
+      const simplifiedArticles = articlesData.map(article => ({
+        id: article.id,
+        title: article.title,
+        summary: article.summary,
+        content: article.content,
+        slug: article.slug,
+        image: article.image,
+        publishedAt: article.publishedAt ? new Date(article.publishedAt).toISOString() : null,
+        views: article.views || 0,
+        featured: article.featured || false,
+        authorId: article.authorId,
+        categoryId: article.categoryId,
+        // Simplify nested objects
+        category: article.category ? {
+          id: article.category.id,
+          name: article.category.name,
+          slug: article.category.slug
+        } : null,
+        author: article.author ? {
+          id: article.author.id,
+          name: article.author.name,
+          username: article.author.username
+        } : null
+      }));
+      
+      // Set content type and respond with stringified JSON
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ articles: simplifiedArticles }));
     } catch (error) {
-      res.status(500).json({ message: "Error fetching latest articles" });
+      console.error("Error fetching latest articles:", error);
+      // Return a valid JSON object even in error case
+      res.status(500).json({ message: "Error fetching latest articles", articles: [] });
     }
   });
 
