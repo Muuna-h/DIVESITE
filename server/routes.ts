@@ -229,12 +229,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Category routes
   app.get("/api/categories", async (req: Request, res: Response) => {
     try {
+      // Set cache control headers to prevent caching
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      
       // Check for includeDetails query parameter
       const includeDetails = req.query.includeDetails === 'true';
+      
+      // Get categories with error handling in the storage method
       const categories = await storage.getCategories({ includeDetails });
-      res.json(categories);
+      
+      // Use a simplified approach - manually create a simple object structure
+      const simplifiedCategories = categories.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description,
+        icon: cat.icon,
+        gradient: cat.gradient,
+        image: cat.image
+      }));
+      
+      // Set content type and respond with stringified JSON
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ categories: simplifiedCategories }));
     } catch (error) {
-      res.status(500).json({ message: "Error fetching categories" });
+      console.error("Error fetching categories:", error);
+      // Return a valid JSON object even in error case
+      res.status(500).json({ message: "Error fetching categories", categories: [] });
     }
   });
 
@@ -300,11 +324,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to safely serialize objects to JSON
+  const safeJSONStringify = (obj: any) => {
+    return JSON.stringify(obj, (key, value) => {
+      // Convert Date objects to ISO strings
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      // Handle circular references or other non-serializable data
+      if (typeof value === 'object' && value !== null) {
+        if (key === 'password') return undefined; // Don't include passwords
+      }
+      return value;
+    });
+  };
+
   app.get("/api/articles/featured", async (req: Request, res: Response) => {
     try {
+      // Set cache control headers to prevent caching
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      
       const articles = await storage.getFeaturedArticles();
-      res.json(articles);
+      
+      // Use safe serialization and explicitly set content type
+      res.setHeader('Content-Type', 'application/json');
+      res.send(safeJSONStringify(articles));
     } catch (error) {
+      console.error("Error fetching featured articles:", error);
       res.status(500).json({ message: "Error fetching featured articles" });
     }
   });

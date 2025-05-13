@@ -100,20 +100,38 @@ export class DatabaseStorage implements IStorage {
 
   // Category methods
   async getCategories(options?: { includeDetails?: boolean }): Promise<Partial<Category>[]> {
-    const query = db.select({
-      id: categories.id,
-      name: categories.name,
-      slug: categories.slug,
-      // Conditionally select details
-      ...(options?.includeDetails && {
-        description: categories.description,
-        icon: categories.icon,
-        gradient: categories.gradient,
-        image: categories.image
-      })
-    }).from(categories);
-    
-    return await query;
+    try {
+      const query = db.select({
+        id: categories.id,
+        name: categories.name,
+        slug: categories.slug,
+        // Conditionally select details
+        ...(options?.includeDetails && {
+          description: categories.description,
+          icon: categories.icon,
+          gradient: categories.gradient,
+          image: categories.image
+        })
+      }).from(categories);
+      
+      const results = await query;
+      
+      // Process the results to ensure they are serializable
+      return results.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        ...(options?.includeDetails && {
+          description: cat.description,
+          icon: cat.icon,
+          gradient: cat.gradient,
+          image: cat.image
+        })
+      }));
+    } catch (error) {
+      console.error('Error in getCategories:', error);
+      return [];
+    }
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {

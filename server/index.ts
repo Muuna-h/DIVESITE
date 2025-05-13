@@ -24,7 +24,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
-  process.env.FRONTEND_URL || 'https://divetech-five.vercel.app/' // Update with your actual Vercel domain
+  process.env.FRONTEND_URL || 'https://divetech.vercel.app/' // Update with your actual Vercel domain
 ];
 
 app.use(cors({
@@ -47,7 +47,7 @@ app.use(session({
     pool,
     tableName: 'session' // Use this table for storing session data
   }),
-  secret: process.env.SESSION_SECRET || 'creative-tech-blog-secret',
+  secret: process.env.SESSION_SECRET || 'SESSION_SECRET',
   resave: false,
   saveUninitialized: false,
   cookie: {

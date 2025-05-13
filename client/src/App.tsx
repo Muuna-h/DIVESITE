@@ -18,6 +18,7 @@ import Footer from "@/components/Footer";
 import { useState, useEffect } from "react";
 import { scrollToTop } from "@/utils/navigation";
 import Services from "@/pages/Services";
+import CategoriesShowcase from "@/components/CategoriesShowcase";
 
 function Router() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -41,8 +42,11 @@ function Router() {
       <main className="flex-grow">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/categories" component={CategoriesShowcase} />
           <Route path="/category/:slug" component={Category} />
           <Route path="/article/:slug" component={Article} />
+          
+          {/* Static routes */}
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
           <Route path="/services" component={Services} />

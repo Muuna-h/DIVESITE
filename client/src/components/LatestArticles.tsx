@@ -6,69 +6,61 @@ import { Article } from "@shared/schema";
 import { container, fadeUp, scrollTriggerOptions } from "@/utils/animations";
 
 const LatestArticles = () => {
-  const { data: latestArticles, isLoading } = useQuery<Article[]>({
+  const { data: latestArticles, isLoading, error } = useQuery<Article[]>({
     queryKey: ['/api/articles/latest'],
+    retry: 3,
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Default placeholder articles for when data is loading
-  const placeholderArticles: Partial<Article>[] = [
-    {
-      id: 5,
-      title: "The Rise of Edge Computing in Enterprise Networks",
-      summary: "How processing data closer to its source is transforming latency-sensitive applications.",
-      slug: "edge-computing-enterprise",
-      categoryId: 1, // IT
-      createdAt: new Date("2023-10-02"),
-      image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: 6,
-      title: "Soft Robotics: The Next Generation of Automation",
-      summary: "Flexible materials and biomimetic designs are creating robots that can safely interact with humans.",
-      slug: "soft-robotics",
-      categoryId: 3, // Hardware
-      createdAt: new Date("2023-10-01"),
-      image: "https://images.unsplash.com/photo-1561883088-039e53143d73?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: 7,
-      title: "6G Research: What's Beyond 5G Technology?",
-      summary: "Researchers are already developing the next generation of wireless communication with terahertz frequencies.",
-      slug: "6g-research",
-      categoryId: 7, // Communication
-      createdAt: new Date("2023-09-30"),
-      image: "https://images.unsplash.com/photo-1516110833967-0b5716ca1387?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: 8,
-      title: "Web3 Development: Building the Decentralized Internet",
-      summary: "Frameworks and tools for developing applications on blockchain and distributed systems.",
-      slug: "web3-development",
-      categoryId: 4, // Emerging Tech
-      createdAt: new Date("2023-09-28"),
-      image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: 9,
-      title: "Carbon Capture Technologies: Fighting Climate Change",
-      summary: "New methods for removing CO2 from the atmosphere are becoming economically viable.",
-      slug: "carbon-capture-tech",
-      categoryId: 5, // Green Tech
-      createdAt: new Date("2023-09-25"),
-      image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: 10,
-      title: "Remote Tech Interview Strategies That Actually Work",
-      summary: "How to stand out in virtual interviews and land your dream tech role.",
-      slug: "remote-tech-interviews",
-      categoryId: 8, // Tech Jobs
-      createdAt: new Date("2023-09-22"),
-      image: "https://images.unsplash.com/photo-1580982327559-c1202864eb63?auto=format&fit=crop&w=800&q=80"
-    }
-  ];
+  // Only show loading state if we're actively fetching
+  if (isLoading && !latestArticles) {
+    return (
+      <section className="py-16 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <h2 className="font-heading text-3xl font-bold mb-8 text-center">
+            Latest <span className="text-primary dark:text-accent">Articles</span>
+          </h2>
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary dark:border-accent"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-  const articles = latestArticles || placeholderArticles;
+  // Show error state if there's an error
+  if (error) {
+    console.error("Error loading latest articles:", error);
+    return (
+      <section className="py-16 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <h2 className="font-heading text-3xl font-bold mb-8 text-center">
+            Latest <span className="text-primary dark:text-accent">Articles</span>
+          </h2>
+          <div className="text-center p-6 rounded-lg bg-red-50 dark:bg-red-900/20">
+            <p className="text-red-600 dark:text-red-400 mb-2">Unable to load latest articles</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">Please try again later</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // If no data was returned, show empty state
+  if (!latestArticles || latestArticles.length === 0) {
+    return (
+      <section className="py-16 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <h2 className="font-heading text-3xl font-bold mb-8 text-center">
+            Latest <span className="text-primary dark:text-accent">Articles</span>
+          </h2>
+          <div className="text-center p-6">
+            <p className="text-gray-600 dark:text-gray-400">No articles available at the moment.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <motion.section 
@@ -89,13 +81,13 @@ const LatestArticles = () => {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={container}
         >
-          {articles.map((article, index) => (
+          {latestArticles.map((article, index) => (
             <motion.div 
               key={article.id || index} 
               variants={fadeUp}
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
             >
-              <ArticleCard article={article as Article} />
+              <ArticleCard article={article} />
             </motion.div>
           ))}
         </motion.div>

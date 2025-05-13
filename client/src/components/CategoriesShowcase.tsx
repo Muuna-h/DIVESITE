@@ -5,11 +5,44 @@ import { container, fadeUp, scrollTriggerOptions } from "@/utils/animations";
 import { useQuery } from "@tanstack/react-query";
 import { Category } from "@shared/schema";
 
+// Define a type for the API response
+type CategoryResponse = {
+  categories: Category[];
+  message?: string;
+};
+
 const CategoriesShowcase = () => {
   // Fetch categories from the API (request full details)
-  const { data: categories, isLoading, error } = useQuery<Category[]>({
-    queryKey: ['/api/categories?includeDetails=true'], // Add includeDetails=true
+  const { data, isLoading, error } = useQuery<CategoryResponse>({
+    queryKey: ['/api/categories?includeDetails=true'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/categories?includeDetails=true', {
+          // Add cache-busting query parameter
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        
+        if (!res.ok) throw new Error('Network response was not ok');
+        
+        const jsonData = await res.json();
+        console.log('Categories API response:', jsonData);
+        return jsonData; // This should now be { categories: [...] }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        throw err;
+      }
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 3
   });
+  
+  // Extract categories from the response
+  const categories = data?.categories || [];
 
   return (
     <motion.section 

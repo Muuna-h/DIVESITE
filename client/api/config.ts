@@ -1,18 +1,20 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  VITE_API_URL: string;
+  VITE_SUPABASE_URL: string;
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
 // API configuration for frontend
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const API_URL = import.meta.env.VITE_SUPABASE_URL || '/api';
 
 // Helper function for API requests with credentials
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   const url = `${API_URL}${endpoint}`;
+  console.log(`Making API request to: ${url}`); // Log the URL being requested
+  
   const defaultOptions: RequestInit = {
     credentials: 'include',
     headers: {
@@ -21,32 +23,42 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
     ...options
   };
 
-  const response = await fetch(url, defaultOptions);
-  
-  if (!response.ok) {
-    // Handle errors based on status code
-    if (response.status === 401) {
-      // Handle unauthorized
-      console.error('Authentication required');
-      // You could redirect to login or dispatch an auth error action
+  try {
+    const response = await fetch(url, defaultOptions);
+    
+    if (!response.ok) {
+      // Handle errors based on status code
+      console.error(`API Error: ${response.status} ${response.statusText} for URL: ${url}`);
+      
+      if (response.status === 401) {
+        // Handle unauthorized
+        console.error('Authentication required');
+        // You could redirect to login or dispatch an auth error action
+      }
+      
+      let errorData;
+      try {
+        errorData = await response.json();
+        console.error('Error data:', errorData);
+      } catch (e) {
+        errorData = { message: 'An unknown error occurred' };
+      }
+      
+      throw new Error(errorData.message || `API error: ${response.status}`);
     }
     
-    let errorData;
-    try {
-      errorData = await response.json();
-    } catch (e) {
-      errorData = { message: 'An unknown error occurred' };
+    // For HEAD or DELETE requests that don't return content
+    if (response.status === 204) {
+      return null;
     }
     
-    throw new Error(errorData.message || `API error: ${response.status}`);
+    const data = await response.json();
+    console.log(`API response for ${url}:`, data);
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch from ${url}:`, error);
+    throw error;
   }
-  
-  // For HEAD or DELETE requests that don't return content
-  if (response.status === 204) {
-    return null;
-  }
-  
-  return response.json();
 }
 
 // Standard API methods

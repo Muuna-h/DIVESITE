@@ -1,5 +1,4 @@
 {
-
   "buildCommand": "vite build",
   "devCommand": "npm run dev",
   "outputDirectory": "dist/public",
@@ -7,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://divetech-production.up.railway.app/api/$1"
+      "destination": "/api/$1"
     },
     {
       "source": "/(.*)",
