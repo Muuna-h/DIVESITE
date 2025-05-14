@@ -1,16 +1,16 @@
-import { sql } from "drizzle-orm";
-import { db } from "../server/db";
+import { supabase } from "../server/db"; // Adjust the path as necessary
 
 // Run migration
 async function main() {
   console.log("Running migration: add_image_to_categories");
   
   try {
-    // Add image column to categories table
-    await db.execute(sql`
-      ALTER TABLE categories
-      ADD COLUMN IF NOT EXISTS image TEXT;
-    `);
+    // Add image column to categories table using raw SQL
+    const { error } = await supabase.rpc('add_image_column_to_categories'); // Assuming you have a stored procedure for this
+
+    if (error) {
+      throw new Error(`Migration failed: ${error.message}`);
+    }
     
     console.log("Migration successful!");
   } catch (error) {

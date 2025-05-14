@@ -1,37 +1,62 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
-import compression from "compression";
+import pgSession from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import pg from 'pg';
 import path from "path";
-import { createClient } from '@supabase/supabase-js';
+import cors from 'cors';
+import { categories } from "@shared/schema";
+import articles from "./src/routes/articles";
+const { Pool } = pg;
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+// Initialize PostgreSQL session store
+const PgStore = pgSession(session);
+
+// Create pool with proper typing
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 const app = express();
-
-// Production optimizations
-if (process.env.NODE_ENV === 'production') {
-  app.use(compression());
-  app.set('trust proxy', 1);
-  app.disable('x-powered-by');
-}
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Set up session middleware with Supabase
+// Enable CORS for development
+// CORS Configuration Section
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.FRONTEND_URL || 'https://divetech.vercel.app/' // Update with your actual Vercel domain
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
+// Set up session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'divetech-secret',
+  store: new PgStore({
+    pool,
+    tableName: 'session' // Use this table for storing session data
+  }),
+  secret: process.env.SESSION_SECRET || 'asili-kenya-secret', // Use env variable in production
   resave: false,
   saveUninitialized: false,
   cookie: {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    secure: process.env.NODE_ENV === 'production'
+    secure: false // Set to true in production with HTTPS
   }
 }));
 
@@ -73,35 +98,27 @@ app.use((req, res, next) => {
   next();
 });
 
-// API status endpoint
+// API status endpoint instead of root path
 app.get('/api/status', (req: Request, res: Response) => {
   res.send('🚀 DiveTech backend is running!');
 });
 
-// Test database connection using Supabase
+// Test database connection and tables
 app.get('/test-db', async (req, res) => {
+  const categoriesTable = categories; // Use the categories table from the schema
+  const articlesTable = articles; // Use the articles table from the schema
+
   try {
     // Test categories table
-    const { data: categories, error: categoriesError } = await supabase
-      .from('categories')
-      .select('*')
-      .limit(1);
-
-    if (categoriesError) throw categoriesError;
-
+    const categoriesResult = await pool.query(`SELECT * FROM ${categoriesTable} LIMIT 1`);
     // Test articles table
-    const { data: articles, error: articlesError } = await supabase
-      .from('articles')
-      .select('*')
-      .limit(1);
-
-    if (articlesError) throw articlesError;
-
+    const articlesResult = await pool.query(`SELECT * FROM ${articlesTable} LIMIT 1`);
+    
     res.json({
       success: true,
-      message: 'Supabase connection and tables verified',
-      categories: categories.length > 0 ? 'Categories table exists' : 'Categories table is empty',
-      articles: articles.length > 0 ? 'Articles table exists' : 'Articles table is empty'
+      message: 'Database connection and tables verified',
+      categories: categoriesResult.rows.length > 0 ? 'Categories table exists' : 'Categories table is empty',
+      articles: articlesResult.rows.length > 0 ? 'Articles table exists' : 'Articles table is empty'
     });
   } catch (error: any) {
     console.error('Database error:', error);
@@ -127,12 +144,17 @@ app.use(express.static(path.join(process.cwd(), 'public')));
     throw err;
   });
 
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
-  
+
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, () => {
     log(`serving on port ${PORT}`);
