@@ -20,9 +20,18 @@ const Header = ({ isSearchOpen, setIsSearchOpen }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [_, navigate] = useLocation();
 
-  const { data: categories } = useQuery<Partial<Category>[]>({
+  const { data } = useQuery<{categories: Partial<Category>[]}>({
     queryKey: ['/api/categories'],
+    queryFn: async () => {
+      const res = await fetch(`${window.location.origin}/api/categories`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      return res.json();
+    }
   });
+
+  const categories = data?.categories || [];
 
   useEffect(() => {
     const handleScroll = () => {

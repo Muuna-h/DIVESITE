@@ -13,47 +13,57 @@ type ArticleResponse = {
 
 const LatestArticles = () => {
   const { data, isLoading, error } = useQuery<ArticleResponse>({
-    queryKey: ['/api/articles/latest'],
+    queryKey: ["/api/articles/latest"],
     queryFn: async () => {
       try {
         // Add cache-busting timestamp parameter to the URL
         const timestamp = new Date().getTime();
-        
+
         // Use the full URL to bypass potential proxying issues
         const baseUrl = window.location.origin;
         const apiUrl = `${baseUrl}/api/articles/latest?_t=${timestamp}`;
-        
+
         console.log(`Requesting latest articles from: ${apiUrl}`);
-        
+
         const res = await fetch(apiUrl, {
           // Add stronger cache-busting headers
           headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0',
-            'Accept': 'application/json'
-          }
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+            Accept: "application/json",
+          },
         });
-        
+
         // Log the response status and headers for debugging
-        console.log(`Latest articles response status: ${res.status} ${res.statusText}`);
-        console.log('Latest articles response type:', res.headers.get('content-type'));
-        
+        console.log(
+          `Latest articles response status: ${res.status} ${res.statusText}`,
+        );
+        console.log(
+          "Latest articles response type:",
+          res.headers.get("content-type"),
+        );
+
         if (!res.ok) {
           // Check if response is HTML (likely authentication page)
-          const contentType = res.headers.get('content-type');
-          if (contentType && contentType.includes('text/html')) {
-            throw new Error('Authentication error - please check Vercel deployment settings');
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("text/html")) {
+            throw new Error(
+              "Authentication error - please check Vercel deployment settings",
+            );
           }
           throw new Error(`API error: ${res.status} ${res.statusText}`);
         }
-        
+
         // Attempt to read the response text first for debugging
         const text = await res.text();
-        
+
         // Log raw response for debugging
-        console.log('Raw latest articles API response:', text.substring(0, 100) + '...');
-        
+        console.log(
+          "Raw latest articles API response:",
+          text.substring(0, 100) + "...",
+        );
+
         // Try to parse it as JSON, with fallback for JSON embedded in HTML
         let jsonData;
         try {
@@ -62,42 +72,61 @@ const LatestArticles = () => {
             jsonData = JSON.parse(text);
           } catch (directError) {
             // Second attempt: try to extract JSON from HTML
-            console.log('Attempting to extract JSON from HTML response for latest articles...');
-            
+            console.log(
+              "Attempting to extract JSON from HTML response for latest articles...",
+            );
+
             // Look for JSON pattern in HTML response (without using 's' flag for compatibility)
-            const jsonPattern1 = new RegExp('\\{\\s*"articles"\\s*:\\s*\\[([\\s\\S]*?)\\]\\s*\\}');
-            const jsonPattern2 = new RegExp('\\{\\s*"categories"\\s*:\\s*\\[([\\s\\S]*?)\\]\\s*\\}');
-            
-            const jsonMatch = text.match(jsonPattern1) || text.match(jsonPattern2);
-                             
+            const jsonPattern1 = new RegExp(
+              '\\{\\s*"articles"\\s*:\\s*\\[([\\s\\S]*?)\\]\\s*\\}',
+            );
+            const jsonPattern2 = new RegExp(
+              '\\{\\s*"categories"\\s*:\\s*\\[([\\s\\S]*?)\\]\\s*\\}',
+            );
+
+            const jsonMatch =
+              text.match(jsonPattern1) || text.match(jsonPattern2);
+
             if (jsonMatch) {
-              console.log('Found potential JSON in HTML for latest articles:', jsonMatch[0].substring(0, 50) + '...');
+              console.log(
+                "Found potential JSON in HTML for latest articles:",
+                jsonMatch[0].substring(0, 50) + "...",
+              );
               jsonData = JSON.parse(jsonMatch[0]);
-              console.log('Successfully extracted JSON from HTML for latest articles');
+              console.log(
+                "Successfully extracted JSON from HTML for latest articles",
+              );
             } else {
-              throw new Error('Could not find latest articles JSON data in HTML response');
+              throw new Error(
+                "Could not find latest articles JSON data in HTML response",
+              );
             }
           }
         } catch (error) {
           // Ensure error is treated as an Error object
-          const parseError = error instanceof Error ? error : new Error(String(error));
-          console.error('JSON parse error with latest articles response:', text);
+          const parseError =
+            error instanceof Error ? error : new Error(String(error));
+          console.error(
+            "JSON parse error with latest articles response:",
+            text,
+          );
           throw new Error(`Invalid JSON response: ${parseError.message}`);
         }
-        
-        console.log('Latest Articles API Response:', jsonData);
+
+        console.log("Latest Articles API Response:", jsonData);
         return jsonData; // Should be { articles: [...] }
       } catch (err) {
-        console.error('Error fetching latest articles:', err);
+        console.error("Error fetching latest articles:", err);
         throw err;
       }
     },
     retry: 3,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
-  
+
   // Extract articles from the response
-  const latestArticles = data?.articles || [];
+  // Ensure articles is always an array
+  const latestArticles = Array.isArray(data?.articles) ? data?.articles : [];
 
   // Only show loading state if we're actively fetching
   if (isLoading && !latestArticles) {
@@ -105,7 +134,8 @@ const LatestArticles = () => {
       <section className="py-16 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <h2 className="font-heading text-3xl font-bold mb-8 text-center">
-            Latest <span className="text-primary dark:text-accent">Articles</span>
+            Latest{" "}
+            <span className="text-primary dark:text-accent">Articles</span>
           </h2>
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary dark:border-accent"></div>
@@ -122,11 +152,16 @@ const LatestArticles = () => {
       <section className="py-16 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <h2 className="font-heading text-3xl font-bold mb-8 text-center">
-            Latest <span className="text-primary dark:text-accent">Articles</span>
+            Latest{" "}
+            <span className="text-primary dark:text-accent">Articles</span>
           </h2>
           <div className="text-center p-6 rounded-lg bg-red-50 dark:bg-red-900/20">
-            <p className="text-red-600 dark:text-red-400 mb-2">Unable to load latest articles</p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">Please try again later</p>
+            <p className="text-red-600 dark:text-red-400 mb-2">
+              Unable to load latest articles
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Please try again later
+            </p>
           </div>
         </div>
       </section>
@@ -139,10 +174,13 @@ const LatestArticles = () => {
       <section className="py-16 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <h2 className="font-heading text-3xl font-bold mb-8 text-center">
-            Latest <span className="text-primary dark:text-accent">Articles</span>
+            Latest{" "}
+            <span className="text-primary dark:text-accent">Articles</span>
           </h2>
           <div className="text-center p-6">
-            <p className="text-gray-600 dark:text-gray-400">No articles available at the moment.</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              No articles available at the moment.
+            </p>
           </div>
         </div>
       </section>
@@ -150,27 +188,27 @@ const LatestArticles = () => {
   }
 
   return (
-    <motion.section 
+    <motion.section
       className="py-16 bg-white dark:bg-gray-900"
       initial="hidden"
       whileInView="visible"
       viewport={scrollTriggerOptions}
     >
       <div className="container mx-auto px-4">
-        <motion.h2 
+        <motion.h2
           className="font-heading text-3xl font-bold mb-8 text-center"
           variants={fadeUp}
         >
           Latest <span className="text-primary dark:text-accent">Articles</span>
         </motion.h2>
-        
-        <motion.div 
+
+        <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={container}
         >
           {latestArticles.map((article, index) => (
-            <motion.div 
-              key={article.id || index} 
+            <motion.div
+              key={article.id || index}
               variants={fadeUp}
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
             >
@@ -178,15 +216,9 @@ const LatestArticles = () => {
             </motion.div>
           ))}
         </motion.div>
-        
-        <motion.div 
-          className="text-center mt-12"
-          variants={fadeUp}
-        >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+
+        <motion.div className="text-center mt-12" variants={fadeUp}>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link href="/articles">
               <a className="inline-block bg-primary hover:bg-primary-dark dark:bg-accent dark:hover:bg-accent-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 shadow-lg">
                 View All Articles

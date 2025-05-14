@@ -1,28 +1,18 @@
-import { db } from '../server/db';
+import { supabase } from '../server/db';
 import {
   users, categories, articles,
-  insertUserSchema, insertCategorySchema, insertArticleSchema
+  type InsertUser, type InsertCategory, type InsertArticle
 } from '../shared/schema';
 import { eq } from 'drizzle-orm';
-import { sql } from 'drizzle-orm/sql';
+
+const db = supabase;
 
 async function initDb() {
   console.log('Initializing database...');
 
   try {
-    // Create session table for connect-pg-simple
-    console.log('Creating session table if it does not exist...');
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS "session" (
-        "sid" varchar NOT NULL COLLATE "default",
-        "sess" json NOT NULL,
-        "expire" timestamp(6) NOT NULL,
-        CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
-      )
-    `);
-
     // Create admin user
-    const adminUser = {
+    const adminUser: InsertUser = {
       username: 'admin',
       password: 'password', // In production, hash this password
       name: 'Admin User',
@@ -31,33 +21,22 @@ async function initDb() {
     };
 
     // Check if admin user exists
-    const existingUser = await db.select().from(users).where(eq(users.username, 'admin'));
-    
-    if (existingUser.length === 0) {
+    const { data: existingUser, error: userError } = await db
+      .from('users')
+      .select()
+      .eq('username', 'admin')
+      .single();
+
+    if (!existingUser) {
       console.log('Creating admin user...');
-      await db.insert(users).values(adminUser);
+      const { error } = await db.from('users').insert(adminUser);
+      if (error) throw error;
     } else {
       console.log('Admin user already exists');
     }
 
-    // Also check for emmanuel user
-    const existingEmmanuel = await db.select().from(users).where(eq(users.username, 'emmanuel'));
-    
-    if (existingEmmanuel.length === 0) {
-      console.log('Creating emmanuel user...');
-      await db.insert(users).values({
-        username: 'emmanuel',
-        password: 'Bnmjkl0987',
-        name: 'Emmanuel',
-        email: 'emmanuel@divetech.com',
-        role: 'admin'
-      });
-    } else {
-      console.log('Emmanuel user already exists');
-    }
-
     // Create categories
-    const defaultCategories = [
+    const defaultCategories: InsertCategory[] = [
       {
         name: 'Information Technology',
         slug: 'it',
@@ -124,29 +103,43 @@ async function initDb() {
     ];
 
     // Check existing categories
-    const existingCategories = await db.select().from(categories);
-    
-    if (existingCategories.length === 0) {
+    const { data: existingCategories, error: categoriesError } = await db
+      .from('categories')
+      .select();
+
+    if (!existingCategories?.length) {
       console.log('Creating categories...');
       for (const category of defaultCategories) {
-        await db.insert(categories).values(category);
+        const { error } = await db.from('categories').insert(category);
+        if (error) throw error;
       }
     } else {
       console.log(`${existingCategories.length} categories already exist`);
     }
 
     // Create sample article if no articles exist
-    const existingArticles = await db.select().from(articles);
-    
-    if (existingArticles.length === 0) {
+    const { data: existingArticles, error: articlesError } = await db
+      .from('articles')
+      .select();
+
+    if (!existingArticles?.length) {
       console.log('Creating sample article...');
-      
-      // First get admin user and first category
-      const [adminUserData] = await db.select().from(users).where(eq(users.username, 'admin'));
-      const [firstCategory] = await db.select().from(categories).limit(1);
-      
+
+      // Get admin user and first category
+      const { data: adminUserData } = await db
+        .from('users')
+        .select()
+        .eq('username', 'admin')
+        .single();
+
+      const { data: firstCategory } = await db
+        .from('categories')
+        .select()
+        .limit(1)
+        .single();
+
       if (adminUserData && firstCategory) {
-        const sampleArticle = {
+        const sampleArticle: InsertArticle = {
           title: 'Getting Started with Tech Blogging',
           slug: 'getting-started-with-tech-blogging',
           summary: 'Learn how to start your tech blog and share your knowledge with the world.',
@@ -180,8 +173,9 @@ Good luck on your tech blogging journey!
           tags: ['blogging', 'tech', 'writing', 'tips'],
           featured: true
         };
-        
-        await db.insert(articles).values(sampleArticle);
+
+        const { error } = await db.from('articles').insert(sampleArticle);
+        if (error) throw error;
       } else {
         console.log('Could not create sample article: admin user or category not found');
       }

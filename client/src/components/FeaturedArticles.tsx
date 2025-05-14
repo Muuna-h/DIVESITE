@@ -105,7 +105,8 @@ const FeaturedArticles = () => {
   });
   
   // Extract articles from the response
-  const featuredArticles = data?.articles || [];
+  // Ensure articles is always an array
+  const featuredArticles = Array.isArray(data?.articles) ? data?.articles : [];
 
   useEffect(() => {
     const handleResize = () => {
