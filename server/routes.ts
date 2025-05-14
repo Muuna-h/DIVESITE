@@ -383,8 +383,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Collect environment information (safely, not exposing secrets)
       const envInfo = {
         nodeEnv: process.env.NODE_ENV || 'not set',
-        hasSupabaseUrl: !!process.env.SUPABASE_URL,
-        hasSupabaseKey: !!process.env.SUPABASE_KEY
+        hasSupabaseUrl: !!process.env.VITE_SUPABASE_URL,
+        hasSupabaseKey: !!process.env.VITE_SUPABASE_ANON_KE
       };
       
       sendSafeJSONResponse(res, {
@@ -409,6 +409,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to check database connection
   async function checkDatabaseConnection() {
     try {
+      // Check if db is not null before querying
+      if (!db) {
+        throw new Error('Database instance is not initialized.');
+      }
       // Try a simple query to verify database connection
       await db.select({ count: sql`COUNT(*)` }).from(categories);
       return true;

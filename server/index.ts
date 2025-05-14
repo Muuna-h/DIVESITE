@@ -18,6 +18,8 @@ const pool = new Pool({
 });
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Enable CORS for development
 // CORS Configuration Section
@@ -47,14 +49,12 @@ app.use(session({
     pool,
     tableName: 'session' // Use this table for storing session data
   }),
-  secret: process.env.SESSION_SECRET || 'SESSION_SECRET',
+  secret: process.env.SESSION_SECRET || 'asili-kenya-secret', // Use env variable in production
   resave: false,
   saveUninitialized: false,
   cookie: {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    secure: process.env.NODE_ENV === 'production', // Set to true in production with HTTPS
-    httpOnly: true,
-    sameSite: 'lax'
+    secure: false // Set to true in production with HTTPS
   }
 }));
 
@@ -96,25 +96,33 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/', (req: Request, res: Response) => {
+// API status endpoint instead of root path
+app.get('/api/status', (req: Request, res: Response) => {
   res.send('🚀 DiveTech backend is running!');
 });
 
+// Test database connection and tables
+app.get('/test-db', async (req, res) => {
+  const categoriesTable = categories; // Use the categories table from the schema
+  const articlesTable = articles; // Use the articles table from the schema
 
-// Test database connection
-app.get('/api/test-db', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
+    // Test categories table
+    const categoriesResult = await pool.query(`SELECT * FROM ${categoriesTable} LIMIT 1`);
+    // Test articles table
+    const articlesResult = await pool.query(`SELECT * FROM ${articlesTable} LIMIT 1`);
+    
     res.json({
       success: true,
-      message: 'Database connection verified',
-      timestamp: result.rows[0]
+      message: 'Database connection and tables verified',
+      categories: categoriesResult.rows.length > 0 ? 'Categories table exists' : 'Categories table is empty',
+      articles: articlesResult.rows.length > 0 ? 'Articles table exists' : 'Articles table is empty'
     });
   } catch (error: any) {
     console.error('Database error:', error);
     res.status(500).json({
       success: false,
-      message: 'Database connection error',
+      message: 'Database error',
       error: error.message
     });
   }
@@ -143,9 +151,10 @@ app.use(express.static(path.join(process.cwd(), 'public')));
     serveStatic(app);
   }
 
-  // Set up the server to listen on the appropriate port
-  const port = process.env.PORT || 3000;
-  server.listen(port, () => {
-    log(`serving on port ${port}`);
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    log(`serving on port ${PORT}`);
   });
 })();
