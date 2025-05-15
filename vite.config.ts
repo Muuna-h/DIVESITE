@@ -20,9 +20,11 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
     cors: true,
+    // Whitelist local and your Render dev domain
+    allowedHosts: ["localhost", "127.0.0.1", "divesite.onrender.com"],
     proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
+      "/api": {
+        target: "http://localhost:5000",
         changeOrigin: true,
         secure: false,
         ws: true
