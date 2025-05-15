@@ -11,4 +11,14 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error("Missing Supabase credentials in .env file");
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: true
+  },
+  global: {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+});
