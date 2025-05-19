@@ -128,17 +128,25 @@ async function initDb() {
       // Get admin user and first category
       const { data: adminUserData } = await db
         .from('users')
-        .select()
+        .select('id, username')
         .eq('username', 'admin')
         .single();
 
       const { data: firstCategory } = await db
         .from('categories')
-        .select()
+        .select('id')
         .limit(1)
         .single();
 
       if (adminUserData && firstCategory) {
+        // Convert the admin user ID to UUID if it's a string
+        const authorId = typeof adminUserData.id === 'string' ? adminUserData.id : undefined;
+        
+        if (!authorId) {
+          console.error('Admin user ID is not in the correct format');
+          return;
+        }
+
         const sampleArticle: InsertArticle = {
           title: 'Getting Started with Tech Blogging',
           slug: 'getting-started-with-tech-blogging',
@@ -169,7 +177,7 @@ Good luck on your tech blogging journey!
           image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
           topImage: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
           categoryId: firstCategory.id,
-          authorId: adminUserData.id,
+          authorId: authorId,
           tags: ['blogging', 'tech', 'writing', 'tips'],
           featured: true
         };

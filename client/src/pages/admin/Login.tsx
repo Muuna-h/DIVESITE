@@ -2,11 +2,10 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
-const Login = () => {
-  const [username, setUsername] = useState("");
+const Login = () => {  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -16,35 +15,57 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!username || !password) {
-      setError("Please enter both username and password");
+    if (!email || !password) {
+      setError("Please enter both email and password");
       return;
     }
     
     setIsLoading(true);
-    setError("");
-    
-    try {
-      const response = await apiRequest("POST", "/api/auth/login", { username, password });
-      const userData = await response.json();
-      
-      toast({
-        title: "Login successful",
-        description: "Welcome to the admin dashboard!",
+    setError("");      try {
+      // Use Supabase email/password auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
       });
-      
-      console.log("Login successful, redirecting to dashboard", userData);
-      
-      // Add a small delay before redirect to ensure cookies are set
-      setTimeout(() => {
-        window.location.href = "/admin";  // Use direct navigation instead of setLocation
-      }, 500);
-    } catch (err) {
+
+      if (error) throw error;
+
+      if (data?.user) {
+        // Check if user has admin role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        if (profile?.role !== 'admin') {
+          throw new Error('Unauthorized: Admin access required');
+        }
+
+        toast({
+          title: "Login successful",
+          description: "Welcome to the admin dashboard!",
+        });
+
+        setLocation("/admin");
+      }    } catch (err) {
       console.error("Login failed:", err);
-      setError("Invalid username or password. Please try again.");
+      let errorMessage = "Invalid email or password";
+      
+      if (err instanceof Error) {
+        if (err.message.includes('Admin access required')) {
+          errorMessage = "This account does not have admin access";
+        } else if (err.message.includes('Invalid login credentials')) {
+          errorMessage = "Invalid email or password";
+        }
+      }
+      
+      setError(errorMessage);
       toast({
         title: "Login failed",
-        description: "Invalid username or password. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -78,16 +99,15 @@ const Login = () => {
                 </div>
               )}
               
-              <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Username
+              <form onSubmit={handleSubmit}>                <div className="mb-4">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Email Address
                   </label>
                   <input 
-                    type="text" 
-                    id="username" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    type="email" 
+                    id="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
                     required
                   />

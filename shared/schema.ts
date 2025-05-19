@@ -1,19 +1,18 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Users table
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey(), // UUID for Supabase Auth compatibility
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
   name: text("name"),
   email: text("email"),
   bio: text("bio"),
   avatar: text("avatar"),
   role: text("role").default("author"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 // Categories table
@@ -38,14 +37,13 @@ export const articles = pgTable("articles", {
   topImage: text("top_image"),
   midImage: text("mid_image"),
   bottomImage: text("bottom_image"),
-  categoryId: integer("category_id").notNull().references(() => categories.id),
-  authorId: integer("author_id").references(() => users.id),
+  categoryId: integer("category_id").notNull().references(() => categories.id),  authorId: uuid("author_id").references(() => users.id), // Changed to UUID to match users.id
   tags: text("tags").array(),
   featured: boolean("featured").default(false),
   views: integer("views").default(0),
-  publishedAt: timestamp("published_at").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  publishedAt: timestamp("published_at", { withTimezone: true }).defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 // Newsletter subscribers table

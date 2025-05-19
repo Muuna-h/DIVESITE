@@ -224,9 +224,14 @@ const ServicesPage = () => {
       </Helmet>
 
       {/* Hero section */}
-      <section className="bg-gradient-to-br from-gray-900 to-primary/80 text-white py-20">
+      <section className="bg-gradient-to-br from-primary/90 to-accent/90 text-white py-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <motion.h1 
               className="font-heading text-4xl md:text-5xl font-bold mb-6"
               initial={{ opacity: 0, y: 20 }}
@@ -248,14 +253,19 @@ const ServicesPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <Link href="/contact">
-                <a className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-base py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-flex items-center">
-                  Get a Free Quote <i className="fas fa-arrow-right ml-2"></i>
-                </a>
+              <Link href="/contact" className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-base py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-flex items-center justify-center">
+                Get in Touch <i className="fas fa-arrow-right ml-2"></i>
               </Link>
+              <a href="https://wa.me/254757937999" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-white text-gray-800 hover:bg-gray-100 font-medium text-base py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-flex items-center justify-center">
+                <i className="fab fa-whatsapp mr-2 text-green-500"></i> Chat on WhatsApp
+              </a>
             </motion.div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -480,8 +490,8 @@ const ServicesPage = () => {
                 </a>
               </Link>
               <a href="https://wa.me/254757937999" target="_blank" rel="noopener noreferrer" 
-                 className="bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 text-white font-medium text-base py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-flex items-center justify-center">
-                <i className="fab fa-whatsapp mr-2"></i> WhatsApp Us
+                 className="bg-white text-gray-800 hover:bg-gray-100 font-medium text-base py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-flex items-center justify-center">
+                <i className="fab fa-whatsapp mr-2 text-green-500"></i> Chat on WhatsApp
               </a>
             </motion.div>
           </div>
@@ -491,4 +501,4 @@ const ServicesPage = () => {
   );
 };
 
-export default ServicesPage; 
+export default ServicesPage;

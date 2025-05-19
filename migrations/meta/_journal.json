@@ -8,6 +8,13 @@
       "when": 1746098172358,
       "tag": "0000_minor_lord_hawal",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1747659419200,
+      "tag": "0001_amusing_celestials",
+      "breakpoints": true
     }
   ]
 }

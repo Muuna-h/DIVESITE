@@ -1,0 +1,13 @@
+{
+  "name": "techblog-scripts",
+  "type": "module",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.2",
+    "@types/node": "^20.0.0",
+    "@types/node-fetch": "^2.6.11"
+  }
+}
