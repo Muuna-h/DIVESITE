@@ -1,129 +1,129 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
+import * as dotenv from "dotenv";
 
-const supabaseUrl = "https://dxhpqenxlxycghjdgmxh.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4aHBxZW54bHh5Y2doamRnbXhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Njg4NDQ1NSwiZXhwIjoyMDYyNDYwNDU1fQ.254luA72e4e16AJmS3CZxvknw6byztscQ7ADpzMDdjM";
+dotenv.config();
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: false,
-    detectSessionInUrl: false
-  }
-});
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
-async function findExistingUser(email: string) {
-  try {
-    // First check auth.users table
-    const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();
-    if (authError) throw authError;
-
-    const authUser = users.find(u => u.email === email);
-    
-    if (!authUser) return null;
-
-    // Then check public.users table
-    const { data: dbUser, error: dbError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
-
-    if (dbError && dbError.code !== 'PGRST116') { // Not found is ok
-      throw dbError;
-    }
-
-    return {
-      authUser,
-      dbUser
-    };
-  } catch (error) {
-    console.error('Error finding user:', error);
-    throw error;
-  }
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Missing Supabase credentials in .env file");
 }
 
-async function main() {
-  console.log("Starting admin user setup...");
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+async function createAdminUser() {
+  console.log("Creating admin user...");
 
   const adminEmail = "admin@divetech.com";
-  const adminPassword = "admin123456";
+  const adminPassword = "Bnmjkl098"; // Change this in production
   const adminUsername = "admin";
 
   try {
-    const existingUser = await findExistingUser(adminEmail);
-    
-    let userId;
-    
-    if (existingUser?.authUser) {
-      console.log("Admin user exists in auth system, updating...");
-      userId = existingUser.authUser.id;
-      
-      // Update password
-      const { error: updateError } = await supabase.auth.admin.updateUserById(
-        userId,
-        { 
-          password: adminPassword,
-          user_metadata: {
-            username: adminUsername,
-            role: 'admin'
-          }
-        }
-      );
-      
-      if (updateError) throw updateError;
-      console.log("Updated auth user password and metadata");
-    } else {
-      console.log("Creating new admin user in auth system...");
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: adminEmail,
-        password: adminPassword,
-        email_confirm: true,
-        user_metadata: {
-          username: adminUsername,
-          role: 'admin'
-        }
-      });
-      
-      if (createError) throw createError;
-      userId = newUser.user.id;
-      console.log("Created new auth user");
+    // Check if user already exists in users table
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", adminEmail)
+      .single();
+
+    if (existingUser) {
+      console.log("Admin user already exists in users table:", existingUser);
+      return;
     }
 
-    // Always ensure the users table record exists and has admin role
-    console.log("Updating user profile in database...");
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
+    // First, create the user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: adminEmail,
+      password: adminPassword,
+      options: {
+        data: {
+          username: adminUsername,
+          role: "admin",
+        },
+      },
+    });
+
+    if (authError) {
+      if (authError.message.includes("already registered")) {
+        console.log("User already exists in auth, checking users table...");
+
+        // Try to get the existing auth user and create profile
+        const {
+          data: { users },
+          error: listError,
+        } = await supabase.auth.admin.listUsers();
+
+        if (listError) throw listError;
+
+        const existingAuthUser = users.find(
+          (user) => user.email === adminEmail,
+        );
+
+        if (existingAuthUser) {
+          // Create user profile
+          const { data: userData, error: userError } = await supabase
+            .from("users")
+            .insert({
+              id: existingAuthUser.id,
+              username: adminUsername,
+              email: adminEmail,
+              role: "admin",
+              name: "Admin User",
+            })
+            .select()
+            .single();
+
+          if (userError) {
+            console.error("Error creating user profile:", userError);
+            return;
+          }
+
+          console.log("Created user profile for existing auth user:", userData);
+          return;
+        }
+      }
+      throw authError;
+    }
+
+    if (!authData.user) {
+      throw new Error("Failed to create auth user");
+    }
+
+    console.log("Created auth user:", authData.user.id);
+
+    // Wait a moment for any triggers to process
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Create or update the user profile in the users table
+    const { data: userData, error: userError } = await supabase
+      .from("users")
       .upsert({
-        id: userId,
-        email: adminEmail,
+        id: authData.user.id,
         username: adminUsername,
-        name: 'Admin User',
-        role: 'admin'
-      }, {
-        onConflict: 'id',
-        ignoreDuplicates: false
+        email: adminEmail,
+        role: "admin",
+        name: "Admin User",
       })
       .select()
       .single();
 
-    if (profileError) throw profileError;
+    if (userError) {
+      console.error("Error creating user profile:", userError);
+      return;
+    }
 
-    console.log("\nAdmin user setup completed successfully!");
-    console.log("\nUser Profile:", profile);
-    console.log("\nLogin Credentials:");
+    console.log("Created user profile:", userData);
+    console.log("\nAdmin user created successfully!");
     console.log("Email:", adminEmail);
     console.log("Password:", adminPassword);
-    console.log("\nIMPORTANT: Please change the password after first login!");
-    
-  } catch (error: any) {
-    console.error("Failed to set up admin user:", error?.message || error);
-    if (error?.code === 'PGRST301') {
-      console.log("\nTIP: You may need to run the database migrations first.");
-    }
+    console.log("\nPlease change the password after first login!");
+  } catch (error) {
+    console.error("Failed to create admin user:", error);
     process.exit(1);
   }
 }
 
-main()
+createAdminUser()
   .catch(console.error)
   .finally(() => process.exit());

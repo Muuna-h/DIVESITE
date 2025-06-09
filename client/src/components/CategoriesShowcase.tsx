@@ -5,27 +5,50 @@ import { useQuery } from "@tanstack/react-query";
 import { Category } from "@shared/schema";
 import { supabase } from "@/lib/supabase";
 
+// Define a type that matches CategoryCard's expectations
+type CategoryCardType = {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  gradient: string | null;
+  image: string | null;
+};
+
 const CategoriesShowcase = () => {
   const {
     data: categories,
     isLoading,
     isError,
-  } = useQuery<Category[]>({
+  } = useQuery<CategoryCardType[]>({
     queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("id, name, slug, description, icon, gradient, image")
+        .order("id", { ascending: true });
 
       if (error) throw new Error(error.message);
-      return data;
+      
+      // Transform the data to ensure it matches CategoryCardType
+      return (data || []).map((category): CategoryCardType => ({
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        icon: category.icon,
+        gradient: category.gradient,
+        image: category.image,
+      }));
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     retry: 3,
   });
+
+  console.log(categories);
 
   return (
     <motion.section 

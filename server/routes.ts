@@ -44,15 +44,15 @@ declare global {
   namespace Express {
     // Explicitly define User interface based on DbUser type
     interface User {
-      id: number;
+      id: string;
       username: string;
-      password: string;
       name: string | null;
       email: string | null;
       bio: string | null;
       avatar: string | null;
       role: string | null;
       createdAt: Date | null;
+      password?: string;
     }
   }
 }
@@ -186,18 +186,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Passport local strategy
   passport.use(
     new LocalStrategy(async (username: string, password: string, done) => {
       try {
-        const user = await typedStorage.getUserByUsername(username);
-        if (!user) {
-          return done(null, false, { message: "Incorrect username." });
+        const { data: { user }, error } = await supabase.auth.signInWithPassword({
+          email: username,
+          password: password,
+        });
+
+        if (error || !user) {
+          return done(null, false, { message: "Invalid credentials" });
         }
-        if (user.password !== password) {
-          return done(null, false, { message: "Incorrect password." });
+
+        const { data: profile } = await supabase
+          .from("users")
+          .select()
+          .eq("id", user.id)
+          .single();
+
+        if (!profile) {
+          return done(null, false, { message: "User profile not found" });
         }
-        return done(null, user);
+
+        return done(null, profile);
       } catch (err) {
         return done(err);
       }
@@ -212,7 +223,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user || false);
+      if (user) {
+        // Convert id to string to match expected type
+        const userWithStringId = { ...user, id: String(user.id) } as Express.User;
+        done(null, userWithStringId);
+      } else {
+        done(null, false);
+      }
     } catch (err) {
       done(err);
     }
@@ -272,25 +289,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/api/auth/me", (req: Request, res: Response) => {
-    if (!(req as any).isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
+  app.get("/api/auth/me", async (req: Request, res: Response) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "Authorization header missing or invalid" });
+      }
+
+      const token = authHeader.split(" ")[1];
+      const { data, error } = await supabase.auth.getUser(token);
+
+      if (error || !data) {
+        console.error("Supabase token validation failed:", error);
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+
+      const user = data.user;
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          username: user.user_metadata?.username || null,
+          name: user.user_metadata?.name || null,
+          avatar: user.user_metadata?.avatar_url || null,
+        },
+      });
+    } catch (error) {
+      console.error("Error validating token:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-    const user = (req as any).user;
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
-    }
-    res.json({
-      user: {
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        email: user.email,
-        bio: user.bio,
-        avatar: user.avatar,
-        role: user.role,
-      },
-    });
   });
 
   // Middleware to check if user is authenticated
@@ -314,8 +342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const includeDetails = req.query.includeDetails === "true";
       const select = includeDetails 
-        ? "id,name,slug,description,icon,gradient,image,article_count:articles(count)"
-        : "id,name,slug";
+        ? "id,name,slug,description,icon,gradient,image,imageAlt,thumbnailImage,bannerImage,imageMetadata,article_count:articles(count)"
+        : "id,name,slug,image";
 
       interface CategoryResponse {
         id: number;
@@ -325,13 +353,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         icon?: string;
         gradient?: string;
         image?: string;
+        imageAlt?: string;
+        thumbnailImage?: string;
+        bannerImage?: string;
+        imageMetadata?: unknown;
         article_count?: number;
       }
 
       const { data: categories, error } = await supabase
         .from("categories")
         .select(select)
-        .order("name");
+        .order("id");
 
       if (error) throw error;
       
@@ -339,11 +371,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: cat.id,
         name: cat.name,
         slug: cat.slug,
+        image: cat.image,
         ...(includeDetails && {
           description: cat.description,
           icon: cat.icon,
           gradient: cat.gradient,
-          image: cat.image,
+          imageAlt: cat.imageAlt,
+          thumbnailImage: cat.thumbnailImage,
+          bannerImage: cat.bannerImage,
+          imageMetadata: cat.imageMetadata,
           articleCount: cat.article_count,
         }),
       })) || [];
@@ -533,8 +569,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : null,
         views: article.views || 0,
         featured: article.featured || false,
-        authorId: article.authorId,
-        categoryId: article.categoryId,
+        authorId: article.author_id,
+        categoryId: article.category_id,
         category: article.category
           ? {
               id: article.category.id,
@@ -695,7 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Check if user is the author or admin
-        if (existingArticle.authorId !== user.id && user.role !== "admin") {
+        if (String(existingArticle.author_id) !== user.id && user.role !== "admin") {
           return res
             .status(403)
             .json({
@@ -740,7 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Check if user is the author or admin
-        if (existingArticle.authorId !== user.id && user.role !== "admin") {
+        if (String(existingArticle.author_id) !== user.id && user.role !== "admin") {
           return res
             .status(403)
             .json({

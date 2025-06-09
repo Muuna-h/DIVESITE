@@ -5,8 +5,9 @@ import { z } from "zod";
 
 // Users table
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey(), // UUID for Supabase Auth compatibility
+  id: serial("id").primaryKey(), // Using serial for auto-increment
   username: text("username").notNull().unique(),
+  password: text("password").notNull(), // Add password field
   name: text("name"),
   email: text("email"),
   bio: text("bio"),
@@ -24,6 +25,10 @@ export const categories = pgTable("categories", {
   icon: text("icon"),
   gradient: text("gradient"),
   image: text("image"),
+  imageAlt: text("image_alt"),
+  thumbnailImage: text("thumbnail_image"),
+  bannerImage: text("banner_image"),
+  imageMetadata: jsonb("image_metadata"),
 });
 
 // Articles table
@@ -37,7 +42,8 @@ export const articles = pgTable("articles", {
   topImage: text("top_image"),
   midImage: text("mid_image"),
   bottomImage: text("bottom_image"),
-  categoryId: integer("category_id").notNull().references(() => categories.id),  authorId: uuid("author_id").references(() => users.id), // Changed to UUID to match users.id
+  category_id: integer("category_id").notNull().references(() => categories.id),
+  author_id: integer("author_id").references(() => users.id).default(1), // Default to admin user (ID: 1)
   tags: text("tags").array(),
   featured: boolean("featured").default(false),
   views: integer("views").default(0),
@@ -86,11 +92,11 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 
 export const articlesRelations = relations(articles, ({ one }) => ({
   author: one(users, {
-    fields: [articles.authorId],
+    fields: [articles.author_id],
     references: [users.id],
   }),
   category: one(categories, {
-    fields: [articles.categoryId],
+    fields: [articles.category_id],
     references: [categories.id],
   }),
 }));
@@ -124,8 +130,8 @@ export const insertArticleSchema = createInsertSchema(articles).pick({
   topImage: true,
   midImage: true,
   bottomImage: true,
-  categoryId: true,
-  authorId: true,
+  category_id: true,
+  author_id: true,
   tags: true,
   featured: true,
 });

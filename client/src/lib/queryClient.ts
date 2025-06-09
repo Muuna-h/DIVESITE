@@ -1,4 +1,10 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!,
+);
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -7,14 +13,24 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+async function getAuthToken() {
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.access_token || "";
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const token = await getAuthToken();
+  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -29,8 +45,12 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const token = await getAuthToken();
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

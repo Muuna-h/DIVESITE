@@ -45,7 +45,8 @@
     "@radix-ui/react-toggle": "^1.1.3",
     "@radix-ui/react-toggle-group": "^1.1.3",
     "@radix-ui/react-tooltip": "^1.2.0",
-    "@supabase/supabase-js": "^2.49.4",
+    "@supabase/auth-js": "^2.69.1",
+    "@supabase/supabase-js": "^2.50.0",
     "@tailwindcss/vite": "^4.1.3",
     "@tanstack/react-query": "^5.60.5",
     "@types/compression": "^1.7.5",
@@ -89,6 +90,7 @@
     "sharp": "^0.34.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
     "tw-animate-css": "^1.2.5",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
@@ -104,7 +106,7 @@
     "@types/connect-pg-simple": "^7.0.3",
     "@types/express": "4.17.21",
     "@types/express-session": "^1.18.1",
-    "@types/node": "20.16.11",
+    "@types/node": "^20.16.11",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
     "@types/react": "^18.3.11",
@@ -118,7 +120,7 @@
     "tailwindcss": "^3.4.17",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.19.1",
-    "typescript": "5.6.3",
+    "typescript": "^5.6.3",
     "vite": "^5.4.14"
   },
   "optionalDependencies": {
@@ -126,5 +128,17 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "description": "",
+  "main": "postcss.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Muuna-h/DIVESITE.git"
+  },
+  "keywords": [],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/Muuna-h/DIVESITE/issues"
+  },
+  "homepage": "https://github.com/Muuna-h/DIVESITE#readme"
 }

@@ -1,6 +1,6 @@
 {
-  "id": "09a04f36-138b-4d1f-b37f-dbc9aa36afad",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "f8f1ee8a-627f-4f3e-8dbd-e382f795fbd4",
+  "prevId": "f0b01182-5042-4f5b-a744-a2980ef10406",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -72,7 +72,8 @@
           "name": "author_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": 1
         },
         "tags": {
           "name": "tags",
@@ -416,6 +417,12 @@
         },
         "username": {
           "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password": {
+          "name": "password",
           "type": "text",
           "primaryKey": false,
           "notNull": true

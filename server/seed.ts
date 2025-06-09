@@ -1,29 +1,52 @@
 import { storage } from "./storage";
+import { createClient } from "@supabase/supabase-js";
 import { type InsertUser, type InsertCategory, type InsertArticle, type InsertSubscriber, type InsertSiteStat } from "@shared/schema";
+
+const supabaseAdminUrl = process.env.SUPABASE_URL || "";
+const supabaseAdminKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+if (!supabaseAdminUrl || !supabaseAdminKey) {
+  throw new Error("Missing Supabase admin credentials! Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your environment variables.");
+}
+
+const supabaseAdmin = createClient(supabaseAdminUrl, supabaseAdminKey);
 
 async function main() {
   console.log(`Start seeding database...`);
   
-  // Check if admin user exists
-  const existingAdmin = await storage.getUserByUsername('admin');
-  
-  if (!existingAdmin) {
-    // Create admin user
-    const adminData: InsertUser = {
+  // Check if admin user exists in auth.users
+const { data: existingAdmin, error } = await supabaseAdmin.auth.admin.listUsers({
+  email: 'admin@divetech.com',
+});
+
+if (error) {
+  console.error("Error checking admin user:", error);
+  process.exit(1);
+}
+
+const adminUser = existingAdmin?.users?.[0];
+
+if (!adminUser) {
+  // Create admin user in auth.users
+  const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    email: 'admin@divetech.com',
+    password: 'adminivy123#',
+    email_confirm: true,
+    user_metadata: {
       username: 'admin',
-      password: 'admin123', // Consider using a more secure password in production
-      name: 'Administrator',
-      email: 'admin@example.com',
-      bio: 'System Administrator',
-      avatar: null,
       role: 'admin'
-    };
-    
-    const user = await storage.createUser(adminData);
-    console.log(`Created admin user with id: ${user.id}`);
-  } else {
-    console.log('Admin user already exists');
+    }
+  });
+  
+  if (createError) {
+    console.error("Error creating admin user:", createError);
+    process.exit(1);
   }
+  
+  console.log(`Created admin user with id: ${newUser.user.id}`);
+} else {
+  console.log('Admin user already exists');
+}
 
   // Add categories if they don't exist
   const categories = [
@@ -50,7 +73,7 @@ async function main() {
   
   // Add sample articles if none exist
   const articles = await storage.getArticles();
-  if (articles.length === 0 && existingAdmin) {
+  if (articles.length === 0) {
     const sampleArticles = [
       {
         title: 'Getting Started with Web Development',
@@ -60,7 +83,7 @@ async function main() {
         image: 'https://images.unsplash.com/photo-1593720213428-28a5b9e94613?auto=format&fit=crop&w=800&q=80',
         categoryId: allCategories.find(c => c.slug === 'development')?.id || 1,
         featured: true,
-        authorId: existingAdmin.id
+        authorId: existingAdmin?.id || ''
       },
       {
         title: 'Best Practices for UI Design',
@@ -70,7 +93,7 @@ async function main() {
         image: 'https://images.unsplash.com/photo-1593642702909-dec73df255d7?auto=format&fit=crop&w=800&q=80',
         categoryId: allCategories.find(c => c.slug === 'design')?.id || 1,
         featured: true,
-        authorId: existingAdmin.id
+        authorId: existingAdmin?.id || ''
       },
       {
         title: 'The Future of Artificial Intelligence',
@@ -80,7 +103,7 @@ async function main() {
         image: 'https://images.unsplash.com/photo-1551845728-6820a54c4226?auto=format&fit=crop&w=800&q=80',
         categoryId: allCategories.find(c => c.slug === 'development')?.id || 1,
         featured: false,
-        authorId: existingAdmin.id
+        authorId: existingAdmin?.id || ''
       }
     ];
     
@@ -142,4 +165,4 @@ main()
   })
   .finally(async () => {
     process.exit(0);
-  }); 
+  });

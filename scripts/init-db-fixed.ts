@@ -1,8 +1,11 @@
-import { db } from '../server/db';
+import { supabase } from '../server/db';
 import {
   users, categories, articles,
+  type InsertUser, type InsertCategory, type InsertArticle
 } from '../shared/schema';
 import { eq } from 'drizzle-orm';
+
+const db = supabase;
 
 async function initDb() {
   console.log('Initializing database...');

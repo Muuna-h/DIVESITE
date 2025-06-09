@@ -13,9 +13,9 @@ CREATE TABLE "articles" (
 	"tags" text[],
 	"featured" boolean DEFAULT false,
 	"views" integer DEFAULT 0,
-	"published_at" timestamp DEFAULT now(),
-	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now(),
+	"published_at" timestamp with time zone DEFAULT now(),
+	"created_at" timestamp with time zone DEFAULT now(),
+	"updated_at" timestamp with time zone DEFAULT now(),
 	CONSTRAINT "articles_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
@@ -26,6 +26,11 @@ CREATE TABLE "categories" (
 	"description" text,
 	"icon" text,
 	"gradient" text,
+	"image" text,
+	"image_alt" text,
+	"thumbnail_image" text,
+	"banner_image" text,
+	"image_metadata" jsonb,
 	CONSTRAINT "categories_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
@@ -59,13 +64,12 @@ CREATE TABLE "subscribers" (
 CREATE TABLE "users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"username" text NOT NULL,
-	"password" text NOT NULL,
 	"name" text,
 	"email" text,
 	"bio" text,
 	"avatar" text,
 	"role" text DEFAULT 'author',
-	"created_at" timestamp DEFAULT now(),
+	"created_at" timestamp with time zone DEFAULT now(),
 	CONSTRAINT "users_username_unique" UNIQUE("username")
 );
 --> statement-breakpoint

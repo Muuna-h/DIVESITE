@@ -4,6 +4,10 @@ import {
   type InsertUser, type InsertCategory, type InsertArticle
 } from '../shared/schema';
 import { eq } from 'drizzle-orm';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const db = supabase;
 
@@ -11,28 +15,56 @@ async function initDb() {
   console.log('Initializing database...');
 
   try {
-    // Create admin user
-    const adminUser: InsertUser = {
-      username: 'admin',
-      password: 'password', // In production, hash this password
-      name: 'Admin User',
-      email: 'admin@divetech.com',
-      role: 'admin'
-    };
+    // Create admin user in Supabase Auth
+    const adminEmail = 'admin@divetech.com';
+    const adminPassword = 'Bnmjkl098$';
 
-    // Check if admin user exists
-    const { data: existingUser, error: userError } = await db
+    // Check if admin exists in Supabase Auth
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+
+    if (authError) {
+      throw authError;
+    }
+
+    const existingAuthUser = authUsers?.users.find(user => user.email === adminEmail);
+
+    if (!existingAuthUser) {
+      console.log('Creating admin user in Supabase Auth...');
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: adminEmail,
+        password: adminPassword,
+        email_confirm: true,
+        user_metadata: {
+          username: 'admin',
+          role: 'admin'
+        }
+      });
+      if (createError) throw createError;
+      console.log('Created admin user in Supabase Auth');
+    } else {
+      console.log('Admin user already exists in Supabase Auth');
+    }
+
+    // Check if admin exists in users table
+    const { data: existingUser } = await db
       .from('users')
       .select()
-      .eq('username', 'admin')
+      .eq('email', adminEmail)
       .single();
 
     if (!existingUser) {
-      console.log('Creating admin user...');
-      const { error } = await db.from('users').insert(adminUser);
+      console.log('Creating admin user in database...');
+      const { error } = await db.from('users').insert({
+        username: 'admin',
+        password: adminPassword,
+        name: 'Admin User',
+        email: adminEmail,
+        role: 'admin'
+      });
       if (error) throw error;
+      console.log('Created admin user in database');
     } else {
-      console.log('Admin user already exists');
+      console.log('Admin user already exists in database');
     }
 
     // Create categories
@@ -42,63 +74,72 @@ async function initDb() {
         slug: 'it',
         description: 'Networking, Cloud Computing, Cybersecurity, Data Storage',
         icon: 'fa-server',
-        gradient: 'bg-gradient-to-r from-blue-500 to-blue-700'
+        gradient: 'bg-gradient-to-r from-blue-500 to-blue-700',
+        image: 'attached_assets/Information Technology.png'
       },
       {
         name: 'Software Development',
         slug: 'software',
         description: 'Programming Languages, Web/App Dev, AI/ML, Mobile Dev',
         icon: 'fa-code',
-        gradient: 'bg-gradient-to-r from-purple-500 to-indigo-600'
+        gradient: 'bg-gradient-to-r from-purple-500 to-indigo-600',
+        image: 'attached_assets/Software Development.png'
       },
       {
         name: 'Hardware Technology',
         slug: 'hardware',
         description: 'Computers, Semiconductors, IoT Devices, Robotics',
         icon: 'fa-microchip',
-        gradient: 'bg-gradient-to-r from-gray-600 to-gray-800'
+        gradient: 'bg-gradient-to-r from-gray-600 to-gray-800',
+        image: 'attached_assets/Hardware Technology.png'
       },
       {
         name: 'Emerging Technologies',
         slug: 'emerging',
         description: 'Quantum Computing, Blockchain, AR/VR, Biotech',
         icon: 'fa-atom',
-        gradient: 'bg-gradient-to-r from-cyan-500 to-teal-500'
+        gradient: 'bg-gradient-to-r from-cyan-500 to-teal-500',
+        image: 'attached_assets/Emerging Technologies.png'
       },
       {
         name: 'Green Tech',
         slug: 'green',
         description: 'Renewable Energy, Sustainable Manufacturing, EVs',
         icon: 'fa-leaf',
-        gradient: 'bg-gradient-to-r from-green-500 to-emerald-600'
+        gradient: 'bg-gradient-to-r from-green-500 to-emerald-600',
+        image: 'attached_assets/Green Tech.png'
       },
       {
         name: 'Media & Entertainment',
         slug: 'media',
         description: 'Gaming, Film/Audio Tech, Streaming Services',
         icon: 'fa-gamepad',
-        gradient: 'bg-gradient-to-r from-red-500 to-pink-600'
+        gradient: 'bg-gradient-to-r from-red-500 to-pink-600',
+        image: 'attached_assets/Media & Entertainment.png'
       },
       {
         name: 'Communication Technology',
         slug: 'communication',
         description: 'Telecom, Mobile Tech, Video Conferencing',
         icon: 'fa-satellite-dish',
-        gradient: 'bg-gradient-to-r from-amber-500 to-orange-600'
+        gradient: 'bg-gradient-to-r from-amber-500 to-orange-600',
+        image: 'attached_assets/Communication Technology.png'
       },
       {
         name: 'Tech Jobs & Internships',
         slug: 'jobs',
         description: 'Career advice, job listings, and interview preparation',
         icon: 'fa-briefcase',
-        gradient: 'bg-gradient-to-r from-blue-400 to-violet-500'
+        gradient: 'bg-gradient-to-r from-blue-400 to-violet-500',
+        image: 'attached_assets/Tech Jobs & Internships.png'
       },
       {
         name: 'Tech Product Reviews',
         slug: 'reviews',
         description: 'Hands-on reviews, comparisons, and buying guides',
         icon: 'fa-star',
-        gradient: 'bg-gradient-to-r from-slate-500 to-slate-700'
+        gradient: 'bg-gradient-to-r from-slate-500 to-slate-700',
+        image: 'attached_assets/Tech Product Reviews.png'
       }
     ];
 
@@ -128,7 +169,7 @@ async function initDb() {
       // Get admin user and first category
       const { data: adminUserData } = await db
         .from('users')
-        .select('id, username')
+        .select('id')
         .eq('username', 'admin')
         .single();
 
@@ -139,46 +180,89 @@ async function initDb() {
         .single();
 
       if (adminUserData && firstCategory) {
-        // Convert the admin user ID to UUID if it's a string
-        const authorId = typeof adminUserData.id === 'string' ? adminUserData.id : undefined;
-        
-        if (!authorId) {
-          console.error('Admin user ID is not in the correct format');
-          return;
-        }
 
         const sampleArticle: InsertArticle = {
-          title: 'Getting Started with Tech Blogging',
-          slug: 'getting-started-with-tech-blogging',
-          summary: 'Learn how to start your tech blog and share your knowledge with the world.',
+          title: 'Welcome to Dive Tech - Your Ultimate Tech Knowledge Hub',
+          slug: 'welcome-to-dive-tech',
+          summary: 'Discover Dive Tech, your comprehensive platform for technology insights, learning resources, and expert guidance across various tech domains.',
           content: `
-# Getting Started with Tech Blogging
+# Welcome to Dive Tech - Your Ultimate Tech Knowledge Hub
 
-Welcome to Dive Tech! This is a sample article to help you get started with tech blogging.
+Welcome to Dive Tech, where technology meets innovation and knowledge! We're your comprehensive resource for staying ahead in the rapidly evolving tech landscape.
 
-## Why Start a Tech Blog?
+## Our Mission
 
-Tech blogging allows you to share your knowledge, build your personal brand, and connect with others in the industry.
+At Dive Tech, we're committed to making technology accessible, understandable, and exciting for everyone. Whether you're a seasoned professional or just starting your tech journey, we provide valuable insights and resources across multiple technology domains.
 
-## How to Choose Your Topics
+## What We Offer
 
-Focus on your strengths and interests. What technology are you most familiar with? What subjects excite you?
+### 1. Comprehensive Tech Coverage
 
-## Best Practices
+- **Information Technology**: Expert insights on networking, cloud computing, cybersecurity, and data storage solutions
+- **Software Development**: In-depth coverage of programming languages, web/app development, AI/ML, and mobile development
+- **Hardware Technology**: Latest updates on computers, semiconductors, IoT devices, and robotics
+- **Emerging Technologies**: Cutting-edge developments in quantum computing, blockchain, AR/VR, and biotech
 
-- Write consistently
-- Use clear, concise language
-- Include code examples when relevant
-- Add visuals to break up text
-- Engage with your readers in the comments
+### 2. Professional Development
 
-Good luck on your tech blogging journey!
+- **Career Guidance**: Expert advice on tech career paths and professional growth
+- **Job Opportunities**: Curated tech job listings and internship opportunities
+- **Interview Preparation**: Tips and resources for technical interviews
+- **Skill Development**: Recommended learning paths and resources
+
+### 3. Product Reviews & Analysis
+
+- **Detailed Reviews**: Comprehensive analysis of the latest tech products
+- **Comparison Guides**: Help you make informed decisions about tech purchases
+- **Industry Trends**: Stay updated with the latest market developments
+- **Best Practices**: Implementation guides and recommendations
+
+### 4. Green Technology Focus
+
+We're committed to sustainable technology, covering:
+- Renewable energy solutions
+- Sustainable manufacturing practices
+- Electric vehicles and clean tech
+- Environmental impact assessment
+
+### 5. Media & Entertainment Tech
+
+Stay updated with:
+- Gaming technology trends
+- Streaming service developments
+- Digital content creation tools
+- Entertainment tech innovations
+
+## Why Choose Dive Tech?
+
+1. **Expert Content**: Articles written by industry professionals
+2. **Current Information**: Regular updates on the latest tech developments
+3. **Practical Insights**: Real-world applications and case studies
+4. **Community Focus**: Engage with like-minded tech enthusiasts
+5. **Comprehensive Coverage**: All aspects of technology under one roof
+
+## Get Involved
+
+- Subscribe to our newsletter for regular updates
+- Join our community discussions
+- Share your knowledge through guest posts
+- Participate in our tech events and webinars
+
+## Connect With Us
+
+Stay connected with Dive Tech:
+- Follow us on social media
+- Subscribe to our YouTube channel
+- Join our Discord community
+- Sign up for our email newsletter
+
+Welcome to the future of tech knowledge sharing!
           `,
           image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
           topImage: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
-          categoryId: firstCategory.id,
-          authorId: authorId,
-          tags: ['blogging', 'tech', 'writing', 'tips'],
+          category_Id: firstCategory.id,
+          author_Id: adminUserData.id,
+          tags: ['dive tech', 'technology', 'services', 'tech hub', 'learning'],
           featured: true
         };
 

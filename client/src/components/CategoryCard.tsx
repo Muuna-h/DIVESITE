@@ -14,25 +14,27 @@ interface CategoryProps {
 }
 
 const CategoryCard = ({ category }: CategoryProps) => {
-  const { 
-    slug, 
-    name, 
-    description = "", 
-    icon = "fa-folder", 
-    gradient = "bg-gray-500", 
-    image 
+  const {
+    slug,
+    name,
+    description = "",
+    icon = "fa-folder",
+    gradient = "bg-gray-500",
+    image,
   } = category;
 
+  const imageUrl = image;
+
   return (
-    <motion.div 
+    <motion.div
       className="category-tile bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg h-full flex flex-col"
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3 }}
     >
       <div className={`h-32 sm:h-40 ${gradient} relative overflow-hidden flex-shrink-0`}>
-        {image ? (
-          <img 
-            src={image} 
+        {imageUrl ? (
+          <img
+            src={imageUrl}
             alt={name}
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -45,7 +47,9 @@ const CategoryCard = ({ category }: CategoryProps) => {
       </div>
       <div className="p-4 sm:p-6 flex flex-col flex-grow">
         <h3 className="font-heading text-lg sm:text-xl font-bold mb-2">{name}</h3>
-        <p className="text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 text-xs sm:text-sm flex-grow">{description}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 text-xs sm:text-sm flex-grow">
+          {description}
+        </p>
         <Link href={`/category/${slug}`}>
           <a className="text-primary dark:text-accent font-medium hover:underline flex items-center mt-auto text-xs sm:text-sm">
             Browse Articles <i className="fas fa-arrow-right ml-1 sm:ml-2 text-xs"></i>

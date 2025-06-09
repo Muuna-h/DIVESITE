@@ -164,48 +164,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Category methods
-  async getCategories(options?: {
-    includeDetails?: boolean;
-  }): Promise<Partial<Category>[]> {
-    try {
-      const select = options?.includeDetails ? "*" : "id,name,slug";
+  async getCategories(options?: { includeDetails?: boolean }): Promise<Partial<Category>[]> {
+  try {
+    const select = options?.includeDetails ? "*" : "*";
 
-      const { data, error } = await supabase.from("categories").select(select);
+    const { data, error } = await supabase.from("categories").select(select);
+    if (error) throw error;
 
-      if (error) throw error;
-
-      interface BaseCategoryResult {
-        id: number;
-        name: string;
-        slug: string;
-      }
-
-      interface DetailedCategoryResult extends BaseCategoryResult {
-        description: string | null;
-        icon: string | null;
-        gradient: string | null;
-        image: string | null;
-      }
-
-      return (
-        data as unknown as (BaseCategoryResult &
-          Partial<DetailedCategoryResult>)[]
-      ).map((cat) => ({
-        id: cat.id,
-        name: cat.name,
-        slug: cat.slug,
-        ...(options?.includeDetails && {
-          description: cat.description,
-          icon: cat.icon,
-          gradient: cat.gradient,
-          image: cat.image,
-        }),
-      }));
-    } catch (error) {
-      console.error("Error in getCategories:", error);
-      return [];
+    interface BaseCategoryResult {
+      id: number;
+      name: string;
+      slug: string;
+      image: string;
     }
+
+    interface DetailedCategoryResult extends BaseCategoryResult {
+      description: string | null;
+      icon: string | null;
+      gradient: string | null;
+    }
+
+    return (
+      data as unknown as (BaseCategoryResult &
+        Partial<DetailedCategoryResult>)[]
+    ).map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      icon: cat.icon,
+      gradient: cat.gradient,
+      image: cat.image, // Directly use the stored image URL
+    }));
+  } catch (error) {
+    console.error("Error in getCategories:", error);
+    return [];
   }
+}
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
     const { data, error } = await supabase

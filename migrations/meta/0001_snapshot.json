@@ -1,6 +1,6 @@
 {
-  "id": "5c628b7d-5897-4e1a-9bdd-abd17725dbf8",
-  "prevId": "e955c2ae-5c50-4ad6-b7a3-4dba4661b450",
+  "id": "f0b01182-5042-4f5b-a744-a2980ef10406",
+  "prevId": "09a04f36-138b-4d1f-b37f-dbc9aa36afad",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -96,21 +96,21 @@
         },
         "published_at": {
           "name": "published_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
@@ -202,6 +202,30 @@
         "image": {
           "name": "image",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_alt": {
+          "name": "image_alt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "thumbnail_image": {
+          "name": "thumbnail_image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banner_image": {
+          "name": "banner_image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_metadata": {
+          "name": "image_metadata",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         }
@@ -386,7 +410,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "serial",
           "primaryKey": true,
           "notNull": true
         },
@@ -435,7 +459,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
