@@ -15,8 +15,8 @@ export async function loginUser(email: string, password: string) {
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select("role")
-    .eq("id", data.user.id)
+    .select()
+    .eq("email", data.user.email)
     .single();
 
   if (profileError) {
