@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { useLogin } from "@/lib/uselogin";
+import { useLogin } from "@/lib/useLogin";
 
 const Login = () => {
   const [email, setEmail] = useState("");
