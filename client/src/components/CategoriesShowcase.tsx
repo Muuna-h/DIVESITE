@@ -42,7 +42,7 @@ const CategoriesShowcase = () => {
         image: category.image,
       }));
     },
-    staleTime: 0.09 * 60 * 1000, // 10 minutes
+    staleTime: 0.02 * 60 * 1000, // 10 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     retry: 3,
