@@ -65,9 +65,10 @@ const AdminCreatePost = () => {
   });
 
   // Query for categories
-  const { data: categories, isLoading: isCategoriesLoading } = useQuery<Category[]>({
+  const { data: categories, isLoading: isCategoriesLoading } = useQuery<{ categories: Category[] }>({
     queryKey: ['/api/categories'],
     enabled: !!userData,
+    select: (data) => data.categories,
   });
 
   // Redirect if not authenticated

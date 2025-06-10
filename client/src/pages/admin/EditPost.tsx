@@ -140,6 +140,9 @@ const AdminEditPost = () => {
         variant: "destructive",
       });
       setIsDeleting(false);
+    },
+    onSettled: () => {
+      setIsDeleting(false);
     }
   });
 
@@ -465,7 +468,7 @@ const AdminEditPost = () => {
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories?.map(category => (
+                          {Array.isArray(categories) && categories.map(category => (
                             <SelectItem key={category.id} value={category.id.toString()}>
                               {category.name}
                             </SelectItem>

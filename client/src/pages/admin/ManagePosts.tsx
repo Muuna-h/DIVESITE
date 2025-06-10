@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Card, 
   CardContent, 
@@ -26,6 +26,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Article, Category } from "@shared/schema";
 import { getCategoryColor } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Define the expected shape of the user data from the API
 interface UserResponse {
@@ -43,6 +55,11 @@ const AdminManagePosts = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Query for the current user with explicit type
   const { data: userData, isLoading: isUserLoading, error: userError } = useQuery<UserResponse>({
@@ -67,6 +84,43 @@ const AdminManagePosts = () => {
     queryKey: ['/api/categories'],
     enabled: !!userData,
   });
+
+  const deleteArticle = useMutation({
+    mutationFn: (articleId: number) => {
+      return apiRequest("DELETE", `/api/articles/${articleId}`, undefined);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Article deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete article. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setArticleToDelete(null);
+    }
+  });
+
+  const handleDeleteClick = (article: Article) => {
+    setArticleToDelete(article);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (articleToDelete) {
+      setIsDeleting(true);
+      deleteArticle.mutate(articleToDelete.id);
+    }
+  };
 
   // Filter and sort articles
   const filteredArticles = articles?.filter(article => {
@@ -175,7 +229,7 @@ const AdminManagePosts = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Categories</SelectItem>
-                      {categories?.map(category => (
+                      {Array.isArray(categories) && categories.map(category => (
                         <SelectItem key={category.id} value={category.id.toString()}>
                           {category.name}
                         </SelectItem>
@@ -286,6 +340,14 @@ const AdminManagePosts = () => {
                                     </span>
                                   </Link>
                                 </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={() => handleDeleteClick(article)}
+                                  className="text-red-600 dark:text-red-500"
+                                >
+                                  <span className="flex items-center w-full">
+                                    <i className="fas fa-trash-alt mr-2"></i> Delete
+                                  </span>
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </td>
@@ -329,6 +391,24 @@ const AdminManagePosts = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the article
+              and remove it from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Yes, delete article"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

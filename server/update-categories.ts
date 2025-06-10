@@ -56,13 +56,12 @@ async function main() {
       console.log(`Copied ${sourcePath} to ${destPath}`);
       
       // Update the category with the image URL
-      const imageUrl = `/uploads/${uniqueFilename}`;
       await storage.updateCategory(category.id, {
         ...category,
-        image: imageUrl
+        image: uniqueFilename
       });
       
-      console.log(`Updated category ${category.name} with image ${imageUrl}`);
+      console.log(`Updated category ${category.name} with image ${uniqueFilename}`);
     } catch (error) {
       console.error(`Error updating category ${category.name}:`, error);
     }

@@ -217,15 +217,29 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-  async getCategoryBySlug(slug: string): Promise<Category | undefined> {
+ async getCategoryBySlug(slug: string): Promise<Category | undefined> {
     const { data, error } = await supabase
       .from("categories")
-      .select()
+      .select("id, name, slug, description, icon, gradient, image, image_alt, thumbnail_image, banner_image")
       .eq("slug", slug)
       .single();
 
     if (error) return undefined;
-    return data;
+    if (!data) return undefined;
+
+    return {
+      id: data.id,
+      name: data.name,
+      slug: data.slug,
+      description: data.description || null,
+      icon: data.icon || null,
+      gradient: data.gradient || null,
+      image: data.image || null,
+      imageAlt: data.image_alt || null,
+      thumbnailImage: data.thumbnail_image || null,
+      bannerImage: data.banner_image || null,
+      imageMetadata: (data as any).image_metadata || null, // Explicitly cast to 'any'
+    };
   }
 
   async getCategoryById(id: number): Promise<Category | undefined> {
@@ -429,11 +443,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createArticle(
-    insertArticle: InsertArticle & { imageFile?: File; topImageFile?: File },
+    insertArticle: InsertArticle & {
+      imageFile?: File;
+      topImageFile?: File;
+      middleImageFile?: File;
+      bottomImageFile?: File;
+    },
   ): Promise<Article> {
     const now = new Date().toISOString();
     let image = insertArticle.image;
     let topImage = insertArticle.topImage;
+    let midImage = insertArticle.midImage;
+    let bottomImage = insertArticle.bottomImage;
 
     try {
       if (insertArticle.imageFile) {
@@ -454,10 +475,30 @@ export class DatabaseStorage implements IStorage {
         topImage = result.url;
       }
 
+      if (insertArticle.middleImageFile) {
+        const result = await this.uploadFile(
+          "article-images",
+          `${Date.now()}-middle-${insertArticle.middleImageFile.name}`,
+          insertArticle.middleImageFile,
+        );
+        midImage = result.url;
+      }
+
+      if (insertArticle.bottomImageFile) {
+        const result = await this.uploadFile(
+          "article-images",
+          `${Date.now()}-bottom-${insertArticle.bottomImageFile.name}`,
+          insertArticle.bottomImageFile,
+        );
+        bottomImage = result.url;
+      }
+
       const articleToInsert = {
         ...insertArticle,
         image,
         topImage,
+        midImage,
+        bottomImage,
         publishedAt: now,
         createdAt: now,
         updatedAt: now,
@@ -466,6 +507,8 @@ export class DatabaseStorage implements IStorage {
 
       delete (articleToInsert as any).imageFile;
       delete (articleToInsert as any).topImageFile;
+      delete (articleToInsert as any).middleImageFile;
+      delete (articleToInsert as any).bottomImageFile;
 
       const { data: article, error } = await supabase
         .from("articles")

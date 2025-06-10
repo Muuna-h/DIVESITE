@@ -341,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if ((req as any).isAuthenticated()) {
       return next();
     }
-    res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ message: "Unauthorized - OLD MIDDLEWARE" });
   };
 
   // Middleware to check if user is admin
@@ -351,16 +351,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     res.status(403).json({ message: "Forbidden" });
   };
+// Middleware to check for token-based authentication
+  const isTokenAuthenticated = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res
+          .status(401)
+          .json({ message: "Authorization header missing or invalid" });
+      }
+
+      const token = authHeader.split(" ")[1];
+      const { data, error } = await supabase.auth.getUser(token);
+
+      if (error || !data.user) {
+        console.error("Supabase token validation failed:", error);
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+
+      if (!data.user.email) {
+        return res
+          .status(401)
+          .json({ message: "User email not found in token" });
+      }
+
+      const profile = await storage.getUserByEmail(data.user.email);
+      if (!profile) {
+        return res.status(401).json({ message: "User profile not found" });
+      }
+
+      // Attach user to request object
+      (req as any).user = profile;
+      next();
+    } catch (error) {
+      console.error("Error in isTokenAuthenticated middleware:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
 
   // Category routes
   app.get("/api/categories", async (req: Request, res: Response) => {
     try {
       const includeDetails = req.query.includeDetails === "true";
-      const select = includeDetails 
-        ? "id,name,slug,description,icon,gradient,image,imageAlt,thumbnailImage,bannerImage,imageMetadata,article_count:articles(count)"
+      const select = includeDetails
+        ? "id,name,slug,description,icon,gradient,image,image_alt,thumbnail_image,banner_image,image_metadata,article_count:articles(count)"
         : "id,name,slug,image";
 
-      interface CategoryResponse {
+      interface SupabaseCategory {
         id: number;
         name: string;
         slug: string;
@@ -368,11 +409,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         icon?: string;
         gradient?: string;
         image?: string;
-        imageAlt?: string;
-        thumbnailImage?: string;
-        bannerImage?: string;
-        imageMetadata?: unknown;
-        article_count?: number;
+        image_alt?: string;
+        thumbnail_image?: string;
+        banner_image?: string;
+        image_metadata?: unknown;
+        article_count?: { count: number }[];
       }
 
       const { data: categories, error } = await supabase
@@ -381,23 +422,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .order("id");
 
       if (error) throw error;
-      
-      const simplifiedCategories = (categories as unknown as CategoryResponse[] | null)?.map((cat) => ({
-        id: cat.id,
-        name: cat.name,
-        slug: cat.slug,
-        image: cat.image,
-        ...(includeDetails && {
-          description: cat.description,
-          icon: cat.icon,
-          gradient: cat.gradient,
-          imageAlt: cat.imageAlt,
-          thumbnailImage: cat.thumbnailImage,
-          bannerImage: cat.bannerImage,
-          imageMetadata: cat.imageMetadata,
-          articleCount: cat.article_count,
+
+      const simplifiedCategories = (
+        categories as unknown as SupabaseCategory[] | null
+      )?.map(
+        (cat) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          image: cat.image,
+          ...(includeDetails && {
+            description: cat.description,
+            icon: cat.icon,
+            gradient: cat.gradient,
+            imageAlt: cat.image_alt,
+            thumbnailImage: cat.thumbnail_image,
+            bannerImage: cat.banner_image,
+            imageMetadata: cat.image_metadata,
+            articleCount: Array.isArray(cat.article_count)
+              ? cat.article_count[0]?.count
+              : 0,
+          }),
         }),
-      })) || [];
+      ) || [];
 
       res.json({ categories: simplifiedCategories });
     } catch (error) {
@@ -466,6 +513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           optimizedBuffer,
           singleFile.filename,
           "image/webp",
+          "attached-assests"
         );
 
         // Update category with new image URL
@@ -699,9 +747,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post(
+ app.post(
     "/api/articles",
-    isAuthenticated,
+    isTokenAuthenticated,
     async (req: Request, res: Response) => {
       try {
         const user = (req as any).user;
@@ -958,7 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Single file upload endpoint
   app.post(
     "/api/upload",
-    isAuthenticated,
+    isTokenAuthenticated,
     async (req: Request, res: Response) => {
       try {
         // Parse the multipart form data
@@ -998,6 +1046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           optimizedBuffer,
           singleFile.filename,
           "image/webp",
+          "attached-assests"
         );
 
         res.json(result);
@@ -1011,7 +1060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Article images upload endpoint
   app.post(
     "/api/articles/:id/images",
-    isAuthenticated,
+    isTokenAuthenticated,
     async (req: Request, res: Response) => {
       try {
         const chunks: Buffer[] = [];
@@ -1049,17 +1098,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             optimizedBuffer,
             file.filename,
             "image/webp",
+            "attached-assests"
           );
         });
 
         const uploadResults = await Promise.all(uploadPromises);
 
-        // Update article with new image URLs if needed
-        if (uploadResults.length === 2) {
-          await storage.updateArticle(parseInt(req.params.id), {
-            image: uploadResults[0].url,
-            topImage: uploadResults[1].url,
-          });
+        // Update article with new image URLs
+        const updateData: { [key: string]: string } = {};
+        if (uploadResults.length > 0) updateData.image = uploadResults[0].url;
+        if (uploadResults.length > 1) updateData.topImage = uploadResults[1].url;
+        if (uploadResults.length > 2)
+          updateData.middleImage = uploadResults[2].url;
+        if (uploadResults.length > 3)
+          updateData.bottomImage = uploadResults[3].url;
+
+        if (Object.keys(updateData).length > 0) {
+          await storage.updateArticle(parseInt(req.params.id), updateData);
         }
 
         res.json(uploadResults);
@@ -1077,7 +1132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     multiple = false,
   ): Promise<MultipartFile | MultipartFile[] | null> {
     try {
-      const parts = buffer.toString().split(`--${boundary}`);
+      const parts = buffer.toString("binary").split(`--${boundary}`);
       const files: MultipartFile[] = [];
 
       for (const part of parts) {

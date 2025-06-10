@@ -18,8 +18,10 @@ import Footer from "@/components/Footer";
 import { useState, useEffect } from "react";
 import { scrollToTop } from "@/utils/navigation";
 import Services from "@/pages/Services";
-import CategoriesShowcase from "@/components/CategoriesShowcase";
+import Categories from "@/pages/Categories";
 import AuthGuard from "@/components/AuthGuard";
+import TermsAndConditions from "@/pages/TermsAndConditions";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 
 function Router() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -44,7 +46,7 @@ function Router() {
         <Switch>
           {/* Public Routes */}
           <Route path="/" component={Home} />
-          <Route path="/categories" component={CategoriesShowcase} />
+          <Route path="/categories" component={Categories} />
           <Route path="/category/:slug" component={Category} />
           <Route path="/article/:slug" component={Article} />
           <Route path="/about" component={About} />
@@ -52,6 +54,8 @@ function Router() {
           <Route path="/services" component={Services} />
           <Route path="/profile" component={Profile} />
           <Route path="/admin/login" component={Login} />
+          <Route path="/terms-and-conditions" component={TermsAndConditions} />
+          <Route path="/privacy-policy" component={PrivacyPolicy} />
 
           {/* Protected Admin Routes */}
           <Route path="/admin" component={() => (

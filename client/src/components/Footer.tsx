@@ -1,9 +1,25 @@
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { siteConfig } from "../config";
 import { navigateWithScroll } from "@/utils/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { Category } from "@shared/schema";
 
 const Footer = () => {
   const [_, navigate] = useLocation();
+
+  const { data: categories, isLoading, isError } = useQuery<Category[]>({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, slug")
+        .order("id", { ascending: true });
+
+      if (error) throw new Error(error.message);
+      return data || [];
+    },
+  });
 
   // Custom Link handler with scroll to top functionality
   const handleNavigation = (path: string) => (e: React.MouseEvent) => {
@@ -39,36 +55,23 @@ const Footer = () => {
           <div>
             <h3 className="font-heading text-lg font-bold mb-4">Categories</h3>
             <ul className="space-y-2">
-              <li>
-                <a href="/category/ai" onClick={handleNavigation("/category/ai")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                  Artificial Intelligence
-                </a>
-              </li>
-              <li>
-                <a href="/category/software" onClick={handleNavigation("/category/software")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                  Software Development
-                </a>
-              </li>
-              <li>
-                <a href="/category/hardware" onClick={handleNavigation("/category/hardware")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                  Hardware Technology
-                </a>
-              </li>
-              <li>
-                <a href="/category/emerging" onClick={handleNavigation("/category/emerging")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                  Emerging Technologies
-                </a>
-              </li>
-              <li>
-                <a href="/category/green" onClick={handleNavigation("/category/green")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                  Green Tech
-                </a>
-              </li>
-              <li>
-                <a href="/category/crypto" onClick={handleNavigation("/category/crypto")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                  Cryptocurrency
-                </a>
-              </li>
+              {isLoading ? (
+                <li>Loading...</li>
+              ) : isError ? (
+                <li>Error loading categories</li>
+              ) : (
+                categories?.map((category) => (
+                  <li key={category.id}>
+                    <a
+                      href={`/category/${category.slug}`}
+                      onClick={handleNavigation(`/category/${category.slug}`)}
+                      className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300"
+                    >
+                      {category.name}
+                    </a>
+                  </li>
+                ))
+              )}
             </ul>
           </div>
           
@@ -127,12 +130,12 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="/privacy" onClick={handleNavigation("/privacy")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/privacy-policy" onClick={handleNavigation("/privacy-policy")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="/terms" onClick={handleNavigation("/terms")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
+                <a href="/terms-and-conditions" onClick={handleNavigation("/terms-and-conditions")} className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-accent transition-colors duration-300">
                   Terms & Conditions
                 </a>
               </li>
@@ -173,10 +176,10 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row md:justify-between md:items-center">
             <p className="text-gray-500 dark:text-gray-400 text-sm">&copy; {new Date().getFullYear()} {siteConfig.name} | {siteConfig.domain}. All rights reserved.</p>
             <div className="mt-4 md:mt-0">
-              <a href="/privacy" onClick={handleNavigation("/privacy")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
+              <a href="/privacy-policy" onClick={handleNavigation("/privacy-policy")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
                 Privacy Policy
               </a>
-              <a href="/terms" onClick={handleNavigation("/terms")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
+              <a href="/terms-and-conditions" onClick={handleNavigation("/terms-and-conditions")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
                 Terms of Service
               </a>
               <a href="/sitemap" onClick={handleNavigation("/sitemap")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300">

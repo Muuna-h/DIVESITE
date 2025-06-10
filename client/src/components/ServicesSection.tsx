@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
-import { container, fadeUp, scaleUp, scrollTriggerOptions } from "@/utils/animations";
+import { container, fadeUp, scaleUp } from "@/utils/animations";
 
 const ServicesSection = () => {
   const services = [
@@ -36,12 +36,15 @@ const ServicesSection = () => {
 
   return (
     <motion.section
-      className="py-20 bg-white dark:bg-gray-900"
+      className="py-20 bg-white dark:bg-gray-900 relative bg-cover bg-center"
+      style={{ backgroundImage: "url(/tech-background.svg)" }}
       initial="hidden"
-      animate="visible"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
       variants={container}
     >
-      <div className="container mx-auto px-4">
+      <div className="absolute inset-0 bg-white dark:bg-gray-900 opacity-90"></div>
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div 
           className="text-center max-w-2xl mx-auto mb-16"
           variants={fadeUp}

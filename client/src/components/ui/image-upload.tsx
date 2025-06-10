@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Button } from "./button";
-import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploadProps {
@@ -26,10 +26,21 @@ const ImageUpload = ({
       const formData = new FormData();
       formData.append("image", file);
       
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        throw new Error("User not authenticated");
+      }
+
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
-        credentials: 'include'
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       
       if (!response.ok) {

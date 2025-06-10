@@ -26,7 +26,7 @@ const Category = () => {
     data: category,
     isLoading: isCategoryLoading,
     isError: isCategoryError,
-  } = useQuery<CategoryType>({
+  } = useQuery({
     queryKey: ["category", slug],
     enabled: !!slug,
     queryFn: async () => {
@@ -41,7 +41,7 @@ const Category = () => {
         throw new Error(error.message);
       }
       if (!data) throw new Error("Category not found");
-      return data;
+      return data as CategoryType;
     },
     retry: 2,
   });
@@ -52,7 +52,7 @@ const Category = () => {
     isError: isArticlesError,
   } = useQuery<Article[]>({
     queryKey: ["articles", slug],
-    enabled: !!slug,
+    enabled: !!category?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("articles")

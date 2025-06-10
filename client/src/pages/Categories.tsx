@@ -9,16 +9,16 @@ const Categories = () => {
     data: categories,
     isLoading,
     isError,
-  } = useQuery<Category[]>({
+  } = useQuery({
     queryKey: ["categories"],
-    queryFn: async (): Promise<Category[]> => {
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("id, name, slug, description, icon, gradient, image, imageAlt, thumbnailImage, bannerImage, imageMetadata")
+        .select("id, name, slug, description, icon, gradient, image, imageAlt, thumbnailImage, bannerImage")
         .order("id", { ascending: true });
 
       if (error) throw new Error(error.message);
-      return data ?? [];
+      return (data as Category[]) ?? [];
     },
   });
 
