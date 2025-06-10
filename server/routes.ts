@@ -305,14 +305,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = data.user;
+
+      console.log("User ID:", user.id);
+      console.log("User email:", user.email);
+
+      if (!user.email) {
+        return res.status(401).json({ message: "User email not found in token" });
+      }
+
+      const profile = await storage.getUserByEmail(user.email);
+      console.log("Profile fetched:", profile);
+      if (!profile) {
+        console.error("Profile not found for email:", user.email);
+        return res.status(401).json({ message: "User profile not found" });
+      }
+
       res.json({
         user: {
-          id: user.id,
+          id: profile.id,
           email: user.email,
-          role: user.role,
-          username: user.user_metadata?.username || null,
-          name: user.user_metadata?.name || null,
-          avatar: user.user_metadata?.avatar_url || null,
+          role: profile.role, // Use app role
+          username: profile.username,
+          name: profile.name,
+          avatar: profile.avatar || user.user_metadata?.avatar_url || null,
         },
       });
     } catch (error) {

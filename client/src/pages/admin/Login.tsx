@@ -35,6 +35,7 @@ const Login = () => {
       });
 
       setLocation("/admin");
+      window.location.reload();
     } catch (err) {
       let msg = "Invalid email or password";
       if (err instanceof Error) {

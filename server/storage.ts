@@ -55,6 +55,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
 
   // Category methods
   getCategories(options?: {
@@ -140,6 +141,20 @@ export class DatabaseStorage implements IStorage {
       .single();
 
     if (error) return undefined;
+    return data;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const { data, error } = await supabase
+      .from("users")
+      .select()
+      .eq("email", email)
+      .single();
+
+    if (error) {
+      console.error("Error fetching user by email:", error);
+      return undefined;
+    }
     return data;
   }
 

@@ -6,31 +6,42 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [_, setLocation] = useLocation();
 
+  // Function to check authentication and admin role
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.user) {
+      setIsAuthorized(false);
+      setLocation("/admin/login");
+      return;
+    }
+
+    const { data: profile, error } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", session.user.id)
+      .single();
+
+    if (error || profile?.role !== "admin") {
+      setIsAuthorized(false);
+      setLocation("/admin/login");
+    } else {
+      setIsAuthorized(true);
+    }
+  };
+
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    checkAuth(); // Initial check on mount
 
-      if (!session?.user) {
-        setIsAuthorized(false);
-        setLocation("/admin/login");
-        return;
-      }
+    // Listen for auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      checkAuth();
+    });
 
-      const { data: profile, error } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", session.user.id)
-        .single();
-
-      if (error || profile?.role !== "admin") {
-        setIsAuthorized(false);
-        setLocation("/admin/login");
-      } else {
-        setIsAuthorized(true);
-      }
+    // Cleanup listener on unmount
+    return () => {
+      listener?.subscription.unsubscribe();
     };
-
-    checkAuth();
   }, []);
 
   if (isAuthorized === null) return <div className="p-4 text-center">Checking access...</div>;
