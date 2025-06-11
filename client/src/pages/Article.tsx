@@ -2,22 +2,35 @@ import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
-import { supabase } from "@/lib/supabase"; // Make sure your Supabase client is set up
+import { supabase } from "@/lib/supabase";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import { Link } from "wouter";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { useEffect } from "react";
 import { Article as ArticleType } from "@shared/schema";
 
+// 👇 Extend the type to include users and categories
+type ExtendedArticle = ArticleType & {
+  users: {
+    id: string;
+    name: string;
+  };
+  categories: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+};
+
 const Article = () => {
   const { slug } = useParams<{ slug: string }>();
 
-  const { data: article, isLoading, isError } = useQuery<ArticleType>({
+  const { data: article, isLoading, isError } = useQuery<ExtendedArticle>({
     queryKey: ["article", slug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("articles")
-        .select("*, author(*), category(*)")
+        .select("*, users:users(*), categories:categories(*)")
         .eq("slug", slug)
         .single();
 
@@ -57,7 +70,17 @@ const Article = () => {
     );
   }
 
-  const { title, content, image, createdAt, author, category } = article;
+  const {
+    title,
+    content,
+    image,
+    createdAt,
+    users: author,
+    categories: category,
+    summary,
+    tags,
+  } = article;
+
   const categorySlug = category?.slug || "it";
   const categoryColors = getCategoryColor(categorySlug);
   const categoryName = category?.name || "Tech";
@@ -66,9 +89,9 @@ const Article = () => {
     <>
       <Helmet>
         <title>{title} - Dive Tech</title>
-        <meta name="description" content={article.summary} />
+        <meta name="description" content={summary} />
         <meta property="og:title" content={`${title} - Dive Tech`} />
-        <meta property="og:description" content={article.summary} />
+        <meta property="og:description" content={summary} />
         <meta property="og:image" content={image} />
       </Helmet>
 
@@ -132,11 +155,11 @@ const Article = () => {
               </div>
             </div>
 
-            {article.tags && article.tags.length > 0 && (
+            {tags && tags.length > 0 && (
               <div className="mt-8">
                 <h3 className="font-heading text-lg font-bold mb-3">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {article.tags.map((tag: string, index: number) => (
+                  {tags.map((tag: string, index: number) => (
                     <Link key={index} href={`/tag/${tag}`}>
                       <a className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1 rounded-full text-sm">
                         #{tag}

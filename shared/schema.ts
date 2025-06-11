@@ -134,6 +134,8 @@ export const insertArticleSchema = createInsertSchema(articles).pick({
   author_id: true,
   tags: true,
   featured: true,
+}).extend({
+  author_id: z.string().uuid(),
 });
 
 export const insertSubscriberSchema = createInsertSchema(subscribers).pick({

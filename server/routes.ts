@@ -282,12 +282,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.post("/api/auth/logout", (req: Request, res: Response) => {
-    (req as any).logout((err: Error | null) => {
-      if (err) return res.status(500).json({ message: "Error logging out" });
+app.post("/api/auth/logout", async (req: Request, res: Response) => {
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Supabase sign out failed:", error);
+      return res.status(500).json({ message: "Error logging out" });
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error destroying session:", err);
+        return res.status(500).json({ message: "Error logging out" });
+      }
+      res.clearCookie('connect.sid');
       res.json({ message: "Logged out successfully" });
     });
-  });
+  } catch (error) {
+    console.error("Error logging out:", error);
+    res.status(500).json({ message: "Error logging out" });
+  }
+});
 
   app.get("/api/auth/me", async (req: Request, res: Response) => {
     try {
@@ -577,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         views: article.views || 0,
         featured: article.featured || false,
         authorId: article.authorId,
-        categoryId: article.categoryId,
+        categoryId: article.category_id,
         category: article.category
           ? {
               id: article.category.id,
@@ -757,9 +773,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: "User not found" });
         }
 
+        // Fetch user from database to get numeric ID
+        const { data: dbUser, error: userError } = await supabase
+          .from("users")
+          .select("id")
+          .eq("id", user.id)
+          .single();
+
+        if (userError || !dbUser) {
+          return res.status(400).json({ message: "Invalid user" });
+        }
+
         const articleData = insertArticleSchema.parse({
           ...req.body,
-          authorId: user.id,
+          author_id: dbUser.id,
+          category_id: req.body.categoryId,
         });
 
         const article = await storage.createArticle(articleData);

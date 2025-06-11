@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link as RouterLink, useLocation } from "wouter";
+import { supabase } from "@/lib/supabase";
 import { 
   Card, 
   CardContent, 
@@ -192,18 +193,17 @@ const AdminDashboard = () => {
   // Logout handler
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) {
-        throw new Error('Logout failed');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        alert("Logout failed. Please try again.");
+      } else {
+        // Invalidate user query to reflect logout status
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+        // Redirect to login page after successful logout
+        navigate("/admin/login");
+        console.log("Logout successful");
       }
-      // Invalidate user query to reflect logout status
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] }); 
-      // Redirect to login page after successful logout
-      navigate("/admin/login"); 
-      console.log('Logout successful');
     } catch (error) {
       console.error("Logout error:", error);
       alert("Logout failed. Please try again.");
