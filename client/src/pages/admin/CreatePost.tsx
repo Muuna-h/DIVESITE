@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { Category } from "@shared/schema";
 import ImageUpload from "@/components/ui/image-upload";
 
@@ -80,11 +81,31 @@ const AdminCreatePost = () => {
 
   // Create article mutation
   const createArticle = useMutation({
-    mutationFn: (articleData: Omit<typeof formData, 'categoryId'> & { categoryId: number }) => {
-      return apiRequest("POST", "/api/articles", articleData);
+    mutationFn: async (articleData: Omit<typeof formData, 'categoryId'> & { categoryId: number }) => {
+      // First, directly insert the article data into Supabase
+      const { data, error } = await supabase
+        .from('articles')
+        .insert({
+          title: articleData.title,
+          slug: articleData.slug,
+          summary: articleData.summary,
+          content: articleData.content,
+          image: articleData.image,
+          topImage: articleData.topImage || null,
+          midImage: articleData.midImage || null,
+          bottomImage: articleData.bottomImage || null,
+          categoryId: articleData.categoryId,
+          tags: articleData.tags,
+          featured: articleData.featured,
+          authorId: userData?.user?.id
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
     },
-    onSuccess: async (response) => {
-      const data = await response.json();
+    onSuccess: (data) => {
       toast({
         title: "Success!",
         description: "Article created successfully",
@@ -95,6 +116,7 @@ const AdminCreatePost = () => {
       navigate(`/article/${data.slug}`);
     },
     onError: (error) => {
+      console.error("Error creating article:", error);
       toast({
         title: "Error",
         description: "Failed to create article. Please try again.",

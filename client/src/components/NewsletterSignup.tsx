@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { container, fadeUp, scaleUp, scrollTriggerOptions } from "@/utils/animations";
 
@@ -24,7 +24,26 @@ const NewsletterSignup = () => {
     setIsSubmitting(true);
     
     try {
-      await apiRequest("POST", "/api/newsletter/subscribe", { email });
+      // Check if session exists first to ensure auth is working
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Current session status:", sessionData ? "Active" : "No active session");
+      
+      // Insert subscriber directly into Supabase
+      const { error, data } = await supabase
+        .from("subscribers")
+        .insert({
+          email,
+          active: true,
+          createdAt: new Date().toISOString(),
+        })
+        .select();
+      
+      if (error) {
+        console.error("Supabase error details:", error);
+        throw error;
+      }
+      
+      console.log("Subscription successful:", data);
       
       toast({
         title: "Success!",
@@ -32,10 +51,21 @@ const NewsletterSignup = () => {
       });
       
       setEmail("");
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Subscription error:", error);
+      
+      // Provide more specific error messages based on error type
+      let errorMessage = "There was an error subscribing to the newsletter. Please try again.";
+      
+      if (error?.message?.includes("CORS") || error?.message?.includes("NetworkError")) {
+        errorMessage = "Network error: Unable to connect to our service. Please check your connection and try again.";
+      } else if (error?.code === "23505") { // Unique constraint violation
+        errorMessage = "This email is already subscribed to our newsletter.";
+      }
+      
       toast({
         title: "Subscription failed",
-        description: "There was an error subscribing to the newsletter. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

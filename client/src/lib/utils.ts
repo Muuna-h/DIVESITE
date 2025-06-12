@@ -106,3 +106,12 @@ export function getCategoryGradient(category: string): string {
 
   return gradients[category] || "bg-gradient-to-r from-primary to-primary-dark";
 }
+
+// Safe parse function
+export function safeParse<T>(json: string | null): T | null {
+  try {
+    return json ? JSON.parse(json) : null;
+  } catch {
+    return null;
+  }
+}

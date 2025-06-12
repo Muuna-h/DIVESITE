@@ -18,7 +18,6 @@ async function initDb() {
     // Create admin user in Supabase Auth
     const adminEmail = 'admin@divetech.com';
     const adminPassword = 'Bnmjkl098$';
-    const id = 1
 
     // Check if admin exists in Supabase Auth
     const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();

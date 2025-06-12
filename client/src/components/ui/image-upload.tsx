@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "./button";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { uploadImage } from "@/lib/supabase";
 
 interface ImageUploadProps {
   currentImage?: string;
@@ -23,38 +24,27 @@ const ImageUpload = ({
     setUploading(true);
     
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-      
+      // Get the current session
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const token = session?.access_token;
-
-      if (!token) {
+      
+      if (!session) {
         throw new Error("User not authenticated");
       }
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Upload directly to Supabase storage bucket with correct spelling
+      const imageUrl = await uploadImage(file, "attached-assests", "uploads");
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error uploading image");
+      if (!imageUrl) {
+        throw new Error("Failed to upload image");
       }
       
-      const data = await response.json();
-      
       // Set preview
-      setPreview(data.url);
+      setPreview(imageUrl);
       
       // Call callback with URL
-      onImageUploaded(data.url);
+      onImageUploaded(imageUrl);
       
       toast({
         title: "Success",
@@ -157,4 +147,4 @@ const ImageUpload = ({
   );
 };
 
-export default ImageUpload; 
+export default ImageUpload;

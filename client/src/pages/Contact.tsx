@@ -1,8 +1,8 @@
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -34,7 +34,19 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      await apiRequest("POST", "/api/contact", formData);
+      // Insert directly into Supabase contact_messages table
+      const { error } = await supabase
+        .from("contact_messages")
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          read: false,
+          createdAt: new Date().toISOString()
+        });
+      
+      if (error) throw error;
       
       toast({
         title: "Message sent!",
@@ -49,6 +61,7 @@ const Contact = () => {
         message: ""
       });
     } catch (error) {
+      console.error("Error submitting contact form:", error);
       toast({
         title: "Submission failed",
         description: "There was an error sending your message. Please try again later.",

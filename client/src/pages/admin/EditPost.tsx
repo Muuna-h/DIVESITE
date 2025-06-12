@@ -165,7 +165,7 @@ const AdminEditPost = () => {
         topImage: article.topImage || "",
         midImage: article.midImage || "",
         bottomImage: article.bottomImage || "",
-        categoryId: article.categoryId.toString(),
+        categoryId: article.category_id.toString(),
         tags: article.tags || [],
         featured: article.featured || false
       });
@@ -249,6 +249,7 @@ const AdminEditPost = () => {
       ...prev,
       [field]: imageUrl
     }));
+    console.log("handleImageUploaded", imageUrl, field, formData);
   };
 
   // Submit form

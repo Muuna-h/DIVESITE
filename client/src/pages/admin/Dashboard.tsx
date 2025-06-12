@@ -88,6 +88,11 @@ const AdminDashboard = () => {
   const tableRef = useRef(null);
   const messagesRef = useRef(null);
   
+  // State for user data
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
+  const [userError, setUserError] = useState<Error | null>(null);
+  
   // Function to safely format dates
   const safeFormatDate = (date: Date | string | null) => {
     if (!date) return "";
@@ -107,10 +112,53 @@ const AdminDashboard = () => {
     return views ?? 0; // Null coalescing operator to default to 0 if null
   };
 
-  // Query for the current user
-  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery<UserData>({
-    queryKey: ['/api/auth/me'],
-  });
+  // Fetch user data directly from Supabase
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsUserLoading(true);
+        
+        // Get the current session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          throw new Error("No active session");
+        }
+        
+        // Get user profile from the database
+        const { data: profile, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+        
+        if (error) throw error;
+        
+        if (!profile) {
+          throw new Error("User profile not found");
+        }
+        
+        setUserData({
+          user: {
+            id: profile.id,
+            username: profile.username,
+            name: profile.name,
+            role: profile.role,
+            email: profile.email,
+            bio: profile.bio,
+            avatar: profile.avatar
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setUserError(error instanceof Error ? error : new Error(String(error)));
+      } finally {
+        setIsUserLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, []);
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
