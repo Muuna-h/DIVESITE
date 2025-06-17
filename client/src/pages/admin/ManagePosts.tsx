@@ -99,16 +99,20 @@ const AdminManagePosts = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Fetch articles - only when authenticated
-  const { data: articles, isLoading: isArticlesLoading } = useQuery<Article[]>({
+  // Fetch articles - only when authenticated and auth loading is complete
+  const { data: articles, isLoading: isArticlesLoading, error: articlesError } = useQuery<Article[]>({
     queryKey: ['/api/articles'],
-    enabled: !!session && !!user,
+    enabled: !!session && !!user && !isAuthLoading,
+    retry: 3,
+    retryDelay: 1000,
   });
 
-  // Fetch categories - only when authenticated
-  const { data: categories, isLoading: isCategoriesLoading } = useQuery<Category[]>({
+  // Fetch categories - only when authenticated and auth loading is complete
+  const { data: categories, isLoading: isCategoriesLoading, error: categoriesError } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
-    enabled: !!session && !!user,
+    enabled: !!session && !!user && !isAuthLoading,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const deleteArticle = useMutation({
@@ -206,25 +210,47 @@ const AdminManagePosts = () => {
     return 0;
   });
 
-  // Show loading while checking authentication
-  if (isAuthLoading) {
+  // Show loading while checking authentication OR loading data
+  if (isAuthLoading || (session && user && (isArticlesLoading || isCategoriesLoading))) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+        <div className="text-gray-600 dark:text-gray-400">
+          {isAuthLoading ? "Checking authentication..." : "Loading articles and categories..."}
+        </div>
       </div>
     );
   }
 
   // Don't render if not authenticated (will redirect in useEffect)
   if (!session || !user) {
-    return null;
-  }
-
-  // Show loading for data fetching
-  if (isArticlesLoading || isCategoriesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="text-gray-600 dark:text-gray-400">
+          Redirecting to login...
+        </div>
+      </div>
+    );
+  }
+
+  // Handle data loading errors
+  if (articlesError || categoriesError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-red-600 dark:text-red-400 mb-4">
+          <i className="fas fa-exclamation-triangle text-4xl mb-2"></i>
+          <p>Failed to load data</p>
+        </div>
+        <Button 
+          onClick={() => {
+            queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+          }}
+          variant="outline"
+        >
+          <i className="fas fa-refresh mr-2"></i>
+          Retry
+        </Button>
       </div>
     );
   }

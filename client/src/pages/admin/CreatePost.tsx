@@ -68,13 +68,19 @@ const AdminCreatePost = () => {
 
     const getSession = async () => {
       try {
+        // Set loading state
+        if (mounted) {
+          setAuthState(prev => ({ ...prev, isLoading: true }));
+        }
+
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Auth error:", error);
           if (mounted) {
             setAuthState({ user: null, session: null, isLoading: false });
-            navigate("/admin/login");
+            // Add small delay before redirect to show loading state
+            setTimeout(() => navigate("/admin/login"), 100);
           }
           return;
         }
@@ -82,7 +88,8 @@ const AdminCreatePost = () => {
         if (!session) {
           if (mounted) {
             setAuthState({ user: null, session: null, isLoading: false });
-            navigate("/admin/login");
+            // Add small delay before redirect to show loading state
+            setTimeout(() => navigate("/admin/login"), 100);
           }
           return;
         }
@@ -98,7 +105,7 @@ const AdminCreatePost = () => {
         console.error("Session fetch error:", error);
         if (mounted) {
           setAuthState({ user: null, session: null, isLoading: false });
-          navigate("/admin/login");
+          setTimeout(() => navigate("/admin/login"), 100);
         }
       }
     };
@@ -130,11 +137,25 @@ const AdminCreatePost = () => {
   }, [navigate]);
 
   // Query for categories - only enabled when authenticated
-  const { data: categories, isLoading: isCategoriesLoading } = useQuery<{ categories: Category[] }>({
+  const { data: categories, isLoading: isCategoriesLoading, error: categoriesError } = useQuery<{ categories: Category[] }>({
     queryKey: ['/api/categories'],
     enabled: !!authState.user && !authState.isLoading,
     select: (data) => data.categories,
+    retry: 3,
+    retryDelay: 1000,
   });
+
+  // Handle categories loading error
+  useEffect(() => {
+    if (categoriesError) {
+      console.error("Categories loading error:", categoriesError);
+      toast({
+        title: "Error",
+        description: "Failed to load categories. Please refresh the page.",
+        variant: "destructive",
+      });
+    }
+  }, [categoriesError, toast]);
 
   // Create article mutation
   const createArticle = useMutation({
@@ -292,18 +313,52 @@ const AdminCreatePost = () => {
     createArticle.mutate(submitData);
   };
 
-  // Show loading spinner while checking authentication or loading categories
-  if (authState.isLoading || isCategoriesLoading) {
+  // Show loading spinner while checking authentication
+  if (authState.isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p className="text-gray-600 dark:text-gray-400">Checking authentication...</p>
+        </div>
       </div>
     );
   }
 
   // Don't render anything if not authenticated (will redirect)
   if (!authState.user || !authState.session) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p className="text-gray-600 dark:text-gray-400">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading spinner while loading categories
+  if (isCategoriesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading categories...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render form if categories haven't loaded yet
+  if (!categories) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading form data...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
