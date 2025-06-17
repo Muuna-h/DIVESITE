@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import { 
   Card, 
   CardContent, 
@@ -38,17 +39,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-
-// Define the expected shape of the user data from the API
-interface UserResponse {
-  user: {
-    id: number;
-    username: string;
-    name?: string | null;
-    role?: string | null;
-    // Add other fields if needed
-  } | null;
-}
+import type { Session, User } from "@supabase/supabase-js";
 
 const AdminManagePosts = () => {
   const [_, navigate] = useLocation();
@@ -58,35 +49,75 @@ const AdminManagePosts = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query for the current user with explicit type
-  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery<UserResponse>({
-    queryKey: ['/api/auth/me'],
-  });
-
-  // Redirect if not authenticated
+  // Check authentication state with Supabase
   useEffect(() => {
-    if (userError) {
-      navigate("/admin/login");
-    }
-  }, [userError, navigate]);
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Auth error:', error);
+          navigate("/admin/login");
+          return;
+        }
 
-  // Fetch articles
+        if (!session) {
+          navigate("/admin/login");
+          return;
+        }
+
+        setSession(session);
+        setUser(session.user);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        navigate("/admin/login");
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          navigate("/admin/login");
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(session);
+          setUser(session.user);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  // Fetch articles - only when authenticated
   const { data: articles, isLoading: isArticlesLoading } = useQuery<Article[]>({
     queryKey: ['/api/articles'],
-    enabled: !!userData,
+    enabled: !!session && !!user,
   });
 
-  // Fetch categories
+  // Fetch categories - only when authenticated
   const { data: categories, isLoading: isCategoriesLoading } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
-    enabled: !!userData,
+    enabled: !!session && !!user,
   });
 
   const deleteArticle = useMutation({
-    mutationFn: (articleId: number) => {
+    mutationFn: async (articleId: number) => {
+      // Ensure we have a valid session before making the request
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+      
       return apiRequest("DELETE", `/api/articles/${articleId}`, undefined);
     },
     onSuccess: () => {
@@ -97,6 +128,7 @@ const AdminManagePosts = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
     },
     onError: (error) => {
+      console.error('Delete error:', error);
       toast({
         title: "Error",
         description: "Failed to delete article. Please try again.",
@@ -116,9 +148,23 @@ const AdminManagePosts = () => {
   };
 
   const confirmDelete = () => {
-    if (articleToDelete) {
+    if (articleToDelete && session) {
       setIsDeleting(true);
       deleteArticle.mutate(articleToDelete.id);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/admin/login");
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -160,7 +206,8 @@ const AdminManagePosts = () => {
     return 0;
   });
 
-  if (isUserLoading || isArticlesLoading || isCategoriesLoading) {
+  // Show loading while checking authentication
+  if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -168,8 +215,18 @@ const AdminManagePosts = () => {
     );
   }
 
-  if (!userData?.user) {
-    return null; // Will redirect in useEffect
+  // Don't render if not authenticated (will redirect in useEffect)
+  if (!session || !user) {
+    return null;
+  }
+
+  // Show loading for data fetching
+  if (isArticlesLoading || isCategoriesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
@@ -186,6 +243,9 @@ const AdminManagePosts = () => {
               <p className="text-gray-600 dark:text-gray-400">
                 Total: {articles?.length || 0} articles
               </p>
+              <p className="text-sm text-gray-500 dark:text-gray-500">
+                Logged in as: {user.email}
+              </p>
             </div>
             <div className="mt-4 md:mt-0 space-x-2">
               <Button variant="outline" onClick={() => navigate("/admin")}>
@@ -193,6 +253,9 @@ const AdminManagePosts = () => {
               </Button>
               <Button onClick={() => navigate("/admin/create")} className="bg-primary hover:bg-primary-dark text-white dark:bg-accent dark:hover:bg-accent-dark">
                 <i className="fas fa-plus mr-2"></i> New Article
+              </Button>
+              <Button variant="outline" onClick={handleSignOut}>
+                <i className="fas fa-sign-out-alt mr-2"></i> Sign Out
               </Button>
             </div>
           </div>
@@ -301,11 +364,10 @@ const AdminManagePosts = () => {
                             </span>
                           </td>
                           <td className="py-3 px-4 hidden md:table-cell">
-                            {/* Handle null date for display */}
                             {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'N/A'}
                           </td>
                           <td className="py-3 px-4 hidden md:table-cell">
-                            {article.views ?? 0} {/* Handle null views for display */}
+                            {article.views ?? 0}
                           </td>
                           <td className="py-3 px-4 hidden md:table-cell">
                             {article.featured ? (

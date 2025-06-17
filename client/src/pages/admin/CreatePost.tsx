@@ -28,16 +28,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
 import { Category } from "@shared/schema";
 import ImageUpload from "@/components/ui/image-upload";
+import type { User, Session } from "@supabase/supabase-js";
 
-// Define the expected shape of the user data from the API
-interface UserResponse {
-  user: {
-    id: number;
-    username: string;
-    name?: string | null;
-    role?: string | null;
-    // Add other fields if needed
-  } | null;
+// Define the expected shape of the user data
+interface AuthState {
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
 }
 
 const AdminCreatePost = () => {
@@ -56,33 +53,97 @@ const AdminCreatePost = () => {
   });
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    session: null,
+    isLoading: true
+  });
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query for the current user with explicit type
-  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery<UserResponse>({
-    queryKey: ['/api/auth/me'],
-  });
+  // Handle authentication with Supabase directly
+  useEffect(() => {
+    let mounted = true;
 
-  // Query for categories
+    const getSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Auth error:", error);
+          if (mounted) {
+            setAuthState({ user: null, session: null, isLoading: false });
+            navigate("/admin/login");
+          }
+          return;
+        }
+
+        if (!session) {
+          if (mounted) {
+            setAuthState({ user: null, session: null, isLoading: false });
+            navigate("/admin/login");
+          }
+          return;
+        }
+
+        if (mounted) {
+          setAuthState({
+            user: session.user,
+            session: session,
+            isLoading: false
+          });
+        }
+      } catch (error) {
+        console.error("Session fetch error:", error);
+        if (mounted) {
+          setAuthState({ user: null, session: null, isLoading: false });
+          navigate("/admin/login");
+        }
+      }
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+
+        if (event === 'SIGNED_OUT' || !session) {
+          setAuthState({ user: null, session: null, isLoading: false });
+          navigate("/admin/login");
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setAuthState({
+            user: session.user,
+            session: session,
+            isLoading: false
+          });
+        }
+      }
+    );
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  // Query for categories - only enabled when authenticated
   const { data: categories, isLoading: isCategoriesLoading } = useQuery<{ categories: Category[] }>({
     queryKey: ['/api/categories'],
-    enabled: !!userData,
+    enabled: !!authState.user && !authState.isLoading,
     select: (data) => data.categories,
   });
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (userError) {
-      navigate("/admin/login");
-    }
-  }, [userError, navigate]);
 
   // Create article mutation
   const createArticle = useMutation({
     mutationFn: async (articleData: Omit<typeof formData, 'categoryId'> & { categoryId: number }) => {
-      // First, directly insert the article data into Supabase
+      if (!authState.user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Insert the article data into Supabase
       const { data, error } = await supabase
         .from('articles')
         .insert({
@@ -94,10 +155,10 @@ const AdminCreatePost = () => {
           topImage: articleData.topImage || null,
           midImage: articleData.midImage || null,
           bottomImage: articleData.bottomImage || null,
-          categoryId: articleData.categoryId,
+          category_id: articleData.categoryId,
           tags: articleData.tags,
           featured: articleData.featured,
-          authorId: userData?.user?.id
+          author_id: authState.user.id
         })
         .select()
         .single();
@@ -231,7 +292,8 @@ const AdminCreatePost = () => {
     createArticle.mutate(submitData);
   };
 
-  if (isUserLoading || isCategoriesLoading) {
+  // Show loading spinner while checking authentication or loading categories
+  if (authState.isLoading || isCategoriesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -239,8 +301,9 @@ const AdminCreatePost = () => {
     );
   }
 
-  if (!userData?.user) {
-    return null; // Will redirect in useEffect
+  // Don't render anything if not authenticated (will redirect)
+  if (!authState.user || !authState.session) {
+    return null;
   }
 
   return (
