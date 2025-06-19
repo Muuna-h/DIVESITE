@@ -214,7 +214,7 @@ const Contact = () => {
                       </div>
                       <div>
                         <h3 className="font-heading font-bold text-lg mb-1">Email Us</h3>
-                        <a href="mailto:divetech@gmail.com"
+                        <a href="mailto:divetechspace@gmail.com"
                            className="inline-flex items-center justify-center py-2 px-4 mt-1 text-sm font-medium rounded-full text-white bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 transition-all duration-300 shadow hover:shadow-md">
                            Send Email
                         </a>

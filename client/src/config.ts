@@ -9,7 +9,7 @@ export const siteConfig = {
     whatsapp: "https://wa.me/254757937999"
   },
   contact: {
-    email: "divetech@gmail.com",
+    email: "divetechspace@gmail.com",
     phone: "https://wa.me/254757937999",
     address: "Nairobi, Kenya"
   }

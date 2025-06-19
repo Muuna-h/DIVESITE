@@ -172,7 +172,7 @@ const ProfilePage = () => {
                   <i className="fab fa-github mr-1.5"></i>
                   <span>GitHub</span>
                 </a>
-                <a href="mailto:divetech@gmail.com" 
+                <a href="mailto:divetechspace@gmail.com" 
                    className="inline-flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-md text-white hover:text-accent bg-white/5 hover:bg-white/10 transition-colors duration-300">
                   <i className="fas fa-envelope mr-1.5"></i>
                   <span>Email</span>

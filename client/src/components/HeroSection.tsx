@@ -116,10 +116,10 @@ const HeroSection = () => {
           className="flex flex-col sm:flex-row justify-center gap-4"
           variants={fadeIn("up", 0.4)}
         >
-          <Link href="#featured" className="bg-gradient-to-r from-primary to-primary-dark hover:opacity-90 text-white font-bold py-4 px-10 rounded-lg transition-all duration-300 shadow-lg transform hover:-translate-y-1">
-            Explore Articles
+          <Link href="services" className="bg-gradient-to-r from-primary to-primary-dark hover:opacity-90 text-white font-bold py-4 px-10 rounded-lg transition-all duration-300 shadow-lg transform hover:-translate-y-1">
+            Our Services
           </Link>
-          <Link href="#categories" className="glass-morph hover:bg-white/30 text-white font-bold py-4 px-10 rounded-lg transition-all duration-300 transform hover:-translate-y-1">
+          <Link href="categories" className="glass-morph hover:bg-white/30 text-white font-bold py-4 px-10 rounded-lg transition-all duration-300 transform hover:-translate-y-1">
             Browse Categories
           </Link>
         </motion.div>

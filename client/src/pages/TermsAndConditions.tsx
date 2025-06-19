@@ -6,8 +6,8 @@ const TermsAndConditions: React.FC = () => {
       <h1 className="text-3xl font-bold mb-4">Terms and Conditions</h1>
       <div className="prose max-w-full">
         <p>
-          Welcome to Creative Tech Blog! These terms and conditions outline the rules and regulations for the use of
-          Creative Tech Blog's Website, located at [Your Website URL].
+          Welcome to Dive Tech! These terms and conditions outline the rules and regulations for the use of
+          Dive Tech's Website, located at [Your Website URL].
         </p>
 
         <p>
@@ -17,8 +17,8 @@ const TermsAndConditions: React.FC = () => {
 
         <h2 className="text-2xl font-bold mt-6 mb-2">Cookies</h2>
         <p>
-          We employ the use of cookies. By accessing Creative Tech Blog, you agreed to use cookies in agreement with
-          the Creative Tech Blog's Privacy Policy.
+          We employ the use of cookies. By accessing Dive Tech, you agreed to use cookies in agreement with
+          the Dive Tech's Privacy Policy.
         </p>
         <p>
           Most interactive websites use cookies to let us retrieve the user's details for each visit. Cookies are
@@ -28,17 +28,17 @@ const TermsAndConditions: React.FC = () => {
 
         <h2 className="text-2xl font-bold mt-6 mb-2">License</h2>
         <p>
-          Unless otherwise stated, Creative Tech Blog and/or its licensors own the intellectual property rights for
-          all material on Creative Tech Blog. All intellectual property rights are reserved. You may access this from
-          Creative Tech Blog for your own personal use subjected to restrictions set in these terms and conditions.
+          Unless otherwise stated, Dive Tech and/or its licensors own the intellectual property rights for
+          all material on Dive Tech. All intellectual property rights are reserved. You may access this from
+          Dive Tech for your own personal use subjected to restrictions set in these terms and conditions.
         </p>
 
         <p>You must not:</p>
         <ul className="list-disc list-inside">
-          <li>Republish material from Creative Tech Blog</li>
-          <li>Sell, rent or sub-license material from Creative Tech Blog</li>
-          <li>Reproduce, duplicate or copy material from Creative Tech Blog</li>
-          <li>Redistribute content from Creative Tech Blog</li>
+          <li>Republish material from Dive Tech</li>
+          <li>Sell, rent or sub-license material from Dive Tech</li>
+          <li>Reproduce, duplicate or copy material from Dive Tech</li>
+          <li>Redistribute content from Dive Tech</li>
         </ul>
 
         <h2 className="text-2xl font-bold mt-6 mb-2">iFrames</h2>
