@@ -1,0 +1,49 @@
+<svg width="1440" height="800" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Tech-themed patterns -->
+    <pattern id="circuit" width="200" height="200" patternUnits="userSpaceOnUse">
+      <path d="M100,20 L150,20 L150,80 L200,80" stroke="rgba(69, 108, 191, 0.12)" stroke-width="2" fill="none"/>
+      <path d="M0,100 L50,100 L50,150 L100,150" stroke="rgba(69, 108, 191, 0.12)" stroke-width="2" fill="none"/>
+      <path d="M120,0 L120,40 L180,40" stroke="rgba(75, 255, 179, 0.15)" stroke-width="2" fill="none"/>
+      <path d="M30,180 L30,120 L70,120 L70,70" stroke="rgba(75, 255, 179, 0.15)" stroke-width="2" fill="none"/>
+      <circle cx="150" cy="20" r="4" fill="rgba(69, 108, 191, 0.3)"/>
+      <circle cx="200" cy="80" r="4" fill="rgba(69, 108, 191, 0.3)"/>
+      <circle cx="50" cy="100" r="4" fill="rgba(69, 108, 191, 0.3)"/>
+      <circle cx="100" cy="150" r="4" fill="rgba(69, 108, 191, 0.3)"/>
+      <circle cx="120" cy="40" r="4" fill="rgba(75, 255, 179, 0.4)"/>
+      <circle cx="180" cy="40" r="4" fill="rgba(75, 255, 179, 0.4)"/>
+      <circle cx="30" cy="120" r="4" fill="rgba(75, 255, 179, 0.4)"/>
+      <circle cx="70" cy="70" r="4" fill="rgba(75, 255, 179, 0.4)"/>
+    </pattern>
+    
+    <!-- Gradient overlays -->
+    <radialGradient id="glowCenter" cx="50%" cy="30%" r="70%" fx="50%" fy="30%">
+      <stop offset="0%" stop-color="rgba(69, 108, 191, 0.12)"/>
+      <stop offset="100%" stop-color="rgba(69, 108, 191, 0)"/>
+    </radialGradient>
+    
+    <radialGradient id="accentGlow" cx="75%" cy="60%" r="50%" fx="75%" fy="60%">
+      <stop offset="0%" stop-color="rgba(75, 255, 179, 0.08)"/>
+      <stop offset="100%" stop-color="rgba(75, 255, 179, 0)"/>
+    </radialGradient>
+    
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="30"/>
+    </filter>
+  </defs>
+  
+  <!-- Base layer -->
+  <rect width="1440" height="800" fill="#f7f9fc"/>
+  
+  <!-- Pattern layer -->
+  <rect width="1440" height="800" fill="url(#circuit)" opacity="0.7"/>
+  
+  <!-- Glow effects -->
+  <rect width="1440" height="800" fill="url(#glowCenter)"/>
+  <rect width="1440" height="800" fill="url(#accentGlow)"/>
+  
+  <!-- Abstract blurred shapes -->
+  <circle cx="200" cy="150" r="100" fill="rgba(69, 108, 191, 0.15)" filter="url(#blur)"/>
+  <circle cx="1200" cy="600" r="120" fill="rgba(75, 255, 179, 0.15)" filter="url(#blur)"/>
+  <circle cx="800" cy="100" r="80" fill="rgba(75, 255, 179, 0.1)" filter="url(#blur)"/>
+</svg> 

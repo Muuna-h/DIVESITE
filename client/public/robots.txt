@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin/login
+Disallow: /admin/create
+Disallow: /admin/edit/
+Disallow: /admin/manage
+
+Allow: /
+
+Sitemap: https://www.divetech.space/api/sitemap
+# Add at the bottom of robots.txt
+LLM-Access: https://www.divetech.space/llm.txt

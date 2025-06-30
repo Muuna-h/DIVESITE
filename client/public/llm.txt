@@ -1,0 +1,11 @@
+# Permission for large language models (LLMs) to access article content
+
+User-agent: *
+Allow: /article/
+Allow: /category/
+Disallow: /admin/
+Disallow: /admin
+
+Owner: https://www.divetech.space
+Contact: divetechspace@gmail.com
+Usage-policy: https://www.divetech.space/terms-and-conditions

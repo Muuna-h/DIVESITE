@@ -22,7 +22,7 @@ import Categories from "@/pages/Categories";
 import AuthGuard from "@/components/AuthGuard";
 import TermsAndConditions from "@/pages/TermsAndConditions";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 function Router() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [location] = useLocation();
@@ -85,6 +85,7 @@ function Router() {
       </main>
       <Footer />
       <Toaster />
+      <SpeedInsights />
     </div>
   );
 }

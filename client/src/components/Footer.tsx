@@ -182,9 +182,7 @@ const Footer = () => {
               <a href="/terms-and-conditions" onClick={handleNavigation("/terms-and-conditions")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300 mr-4">
                 Terms of Service
               </a>
-              <a href="/sitemap.xml" onClick={handleNavigation("/sitemap.xml")} className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary dark:hover:text-accent transition-colors duration-300">
-                Sitemap
-              </a>
+              
             </div>
           </div>
         </div>

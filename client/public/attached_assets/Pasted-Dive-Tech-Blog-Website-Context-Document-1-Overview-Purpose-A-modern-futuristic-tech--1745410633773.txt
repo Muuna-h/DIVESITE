@@ -1,0 +1,130 @@
+Dive Tech Blog Website Context Document  
+1. Overview  
+
+    Purpose : A modern, futuristic tech blog platform showcasing curated articles across 9 categories (7 core + 2 additional).
+    Audience : Tech enthusiasts, professionals, and learners seeking insights on emerging technologies, software development, hardware, and green tech.
+    Core Values : Clean design, seamless interactivity, and data-driven content management.
+     
+
+2. Key Features & Design Requirements  
+A. Homepage  
+
+    Dynamic Visual Effects :
+        Zoom Hover Effect : Elements/images scale slightly when hovered over.
+        Scroll Zooming : Subtle zoom-in/out animation during vertical scrolling.
+        Pop-Up Transition : Blog cards expand smoothly when clicked to open full articles.
+         
+    Content Layout :
+        Hero Section : Futuristic banner with tagline ("Dive Into Tomorrow’s Tech").
+        Featured Articles : Carousel/slider showcasing top posts with thumbnails and titles.
+        Category Showcase : 9 categories displayed as interactive tiles (see below).
+         
+     
+
+B. Categories & Tags  
+
+    Core Categories :
+        Information Technology (IT)   
+            Networking, Cloud Computing, Cybersecurity, Data Storage.
+             
+        Software Development   
+            Programming Languages, Web/App Dev, AI/ML, Mobile Dev.
+             
+        Hardware Technology   
+            Computers, Semiconductors, IoT Devices, Robotics.
+             
+        Emerging Technologies   
+            Quantum Computing, Blockchain, AR/VR, Biotech.
+             
+        Green Tech   
+            Renewable Energy, Sustainable Manufacturing, EVs.
+             
+        Media & Entertainment Tech   
+            Gaming, Film/Audio Tech, Streaming Services.
+             
+        Communication Technology   
+            Telecom, Mobile Tech, Video Conferencing.
+             
+         
+    Additional Categories :
+        Tech Jobs/Internships   
+        Tech Product Reviews 
+         
+     
+
+C. Navigation & UI Components  
+
+    Header :
+        Logo (left) | Search Bar (right) | Profile Button (right).
+        Dropdown menus for categories/tags.
+         
+    Footer :
+        Links to categories, services, contact info, T&C, Privacy Policy.
+        Social media icons and newsletter signup.
+         
+     
+
+D. Interactive Elements  
+
+    Search Functionality : Live filtering of articles by keywords, categories, or tags.
+    Dark Mode Toggle : Switch between light/dark themes (stored in local storage).
+    Parallax Scrolling : Depth effect for background visuals.
+     
+
+3. Admin Portal Requirements  
+A. Dashboard Overview  
+
+    Metrics Dashboard :
+        Site Performance: Page views, bounce rate, session duration.
+        Article Performance: Reads/clicks per post, top-performing categories.
+        User Activity: Session count, geographic distribution.
+         
+    Content Management :
+        CRUD operations for posts, categories, tags, and authors.
+        Drag-and-drop interface for reordering featured articles.
+         
+     
+
+B. Post Creation Form  
+
+    Fields :
+        Title
+        Thumbnail Image (required)
+        Additional Images:  
+            Top Image  (introductory visual)  
+            Mid-Article Image  (breaks up text)  
+            Bottom Image  (near conclusion)
+             
+        Link Embedding: Text-to-link converter (e.g., "Click here" → live link).
+        Content Editor: WYSIWYG editor (TinyMCE/CKEditor) for formatting paragraphs.
+        Category Selection: Dropdown with category IDs (e.g., it, software).
+        Tag Input: Auto-suggest tags based on existing entries.
+         
+     
+
+C. Profile Management  
+
+    Edit author bio, services offered, and contact info.
+    Preview changes before saving.
+     
+
+4. Technical Stack Recommendations  
+Frontend  
+
+    Framework : React.js (with TypeScript for scalability).
+    UI Libraries : Tailwind CSS (for styling), Framer Motion (animations), React Router (routing).
+    State Management : Redux Toolkit or Zustand for global state (e.g., theme, auth).
+     
+
+Backend/API  
+
+    Headless CMS : Sanity.io or Strapi for content management.
+    Database : MongoDB (for flexible schema) or PostgreSQL (if relational data is critical).
+    Authentication : Firebase Auth or JWT for admin access.
+     
+
+Deployment  
+
+    Hosting : Vercel (for React apps) or Netlify (with CI/CD pipelines).
+    Domain : Custom domain (e.g., divetech.com) with SSL.
+     
