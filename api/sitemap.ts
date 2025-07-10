@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const now = new Date().toISOString();
 
     const { data: articles, error: articlesError } = await supabase
-      .from("posts")
+      .from("articles") // <-- use the correct table name
       .select("slug, updated_at");
     if (articlesError) throw articlesError;
 
