@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
 import { Article } from "@shared/schema";
 import { getCategoryName, getCategoryColor } from "@/lib/utils";
+import { supabase } from "@/lib/supabase"; // <-- import your supabase client
 
 interface SearchOverlayProps {
   onClose: () => void;
@@ -11,14 +11,28 @@ interface SearchOverlayProps {
 
 const SearchOverlay = ({ onClose }: SearchOverlayProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [_, setLocation] = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
-  
-  const { data: articles } = useQuery<Article[]>({
-    queryKey: ['/api/search', searchTerm],
-    enabled: searchTerm.length > 2,
-  });
-  
+
+  useEffect(() => {
+    if (searchTerm.length > 2) {
+      setIsLoading(true);
+      supabase
+        .from("articles")
+        .select("id, slug, title, image, category_id, category:category_id (slug, name)")
+        .ilike("title", `%${searchTerm}%`)
+        .then(({ data, error }) => {
+          console.log("Supabase search result:", { data, error });
+          setArticles((data as unknown as Article[]) || []);
+          setIsLoading(false);
+        });
+    } else {
+      setArticles([]);
+    }
+  }, [searchTerm]);
+
   // Close the search overlay when Escape key is pressed
   useEffect(() => {
     const handleEscapeKey = (e: KeyboardEvent) => {
@@ -26,19 +40,19 @@ const SearchOverlay = ({ onClose }: SearchOverlayProps) => {
         onClose();
       }
     };
-    
+
     document.addEventListener("keydown", handleEscapeKey);
-    
+
     // Focus the input when overlay opens
     if (inputRef.current) {
       inputRef.current.focus();
     }
-    
+
     return () => {
       document.removeEventListener("keydown", handleEscapeKey);
     };
   }, [onClose]);
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
@@ -46,7 +60,7 @@ const SearchOverlay = ({ onClose }: SearchOverlayProps) => {
       onClose();
     }
   };
-  
+
   const handleArticleClick = (slug: string) => {
     setLocation(`/article/${slug}`);
     onClose();
@@ -95,7 +109,12 @@ const SearchOverlay = ({ onClose }: SearchOverlayProps) => {
             
             {searchTerm.length > 2 && (
               <div className="mt-4 max-h-96 overflow-y-auto">
-                {articles && articles.length > 0 ? (
+                {isLoading ? (
+                  <div className="text-center p-6 text-gray-500 dark:text-gray-400">
+                    <i className="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                    <p>Searching...</p>
+                  </div>
+                ) : articles && articles.length > 0 ? (
                   <div className="space-y-3">
                     {articles.map((article) => {
                       const categorySlug = article.category?.slug || 
@@ -103,7 +122,7 @@ const SearchOverlay = ({ onClose }: SearchOverlayProps) => {
                         "it";
                       const categoryColors = getCategoryColor(categorySlug);
                       const categoryName = article.category?.name || getCategoryName(categorySlug);
-                      
+
                       return (
                         <motion.div 
                           key={article.id}
@@ -130,15 +149,10 @@ const SearchOverlay = ({ onClose }: SearchOverlayProps) => {
                       );
                     })}
                   </div>
-                ) : articles && articles.length === 0 ? (
+                ) : (
                   <div className="text-center p-6 text-gray-500 dark:text-gray-400">
                     <i className="fas fa-search-minus text-3xl mb-2"></i>
                     <p>No results found for "{searchTerm}"</p>
-                  </div>
-                ) : (
-                  <div className="text-center p-6 text-gray-500 dark:text-gray-400">
-                    <i className="fas fa-search text-3xl mb-2"></i>
-                    <p>Type to search for articles</p>
                   </div>
                 )}
               </div>

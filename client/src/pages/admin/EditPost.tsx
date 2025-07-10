@@ -1,55 +1,33 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useLocation, useParams } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle 
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { Article, Category } from "@shared/schema";
 import ImageUpload from "@/components/ui/image-upload";
+import { supabase } from "@/lib/supabase";
 
-// Define a more specific user type to fix TypeScript errors
 interface User {
   id: number;
   username: string;
   name: string;
   role: string;
   email?: string;
-}
-
-interface UserData {
-  user: User;
 }
 
 const AdminEditPost = () => {
@@ -63,114 +41,64 @@ const AdminEditPost = () => {
     topImage: "",
     midImage: "",
     bottomImage: "",
-    categoryId: "",
+    category_id: "",
     tags: [] as string[],
     featured: false
   });
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [article, setArticle] = useState<Article | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [_, navigate] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Query for the current user
-  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery<UserData>({
-    queryKey: ['/api/auth/me'],
-  });
-
-  // Query for categories
-  const { data: categories, isLoading: isCategoriesLoading } = useQuery<Category[]>({
-    queryKey: ['/api/categories'],
-    enabled: !!userData,
-  });
-
-  // Query for article data
-  const { data: article, isLoading: isArticleLoading } = useQuery<Article>({
-    queryKey: [`/api/articles/id/${id}`],
-    enabled: !!userData && !!id,
-  });
-
-  // Update article mutation
-  const updateArticle = useMutation({
-    mutationFn: (articleData: any) => {
-      return apiRequest("PUT", `/api/articles/${id}`, articleData);
-    },
-    onSuccess: async (response) => {
-      const data = await response.json();
-      toast({
-        title: "Success!",
-        description: "Article updated successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/articles/id/${id}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/articles/latest'] });
-      navigate(`/article/${data.slug}`);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update article. Please try again.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-    }
-  });
-
-  // Delete article mutation
-  const deleteArticle = useMutation({
-    mutationFn: () => {
-      return apiRequest("DELETE", `/api/articles/${id}`, undefined);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success!",
-        description: "Article deleted successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/articles/latest'] });
-      navigate("/admin/manage");
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete article. Please try again.",
-        variant: "destructive",
-      });
-      setIsDeleting(false);
-    },
-    onSettled: () => {
-      setIsDeleting(false);
-    }
-  });
-
-  // Redirect if not authenticated
+  // Fetch categories and article
   useEffect(() => {
-    if (userError) {
-      navigate("/admin/login");
-    }
-  }, [userError, navigate]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      // Fetch categories
+      const { data: catData, error: catError } = await supabase
+        .from("categories")
+        .select("*");
+      if (catError) {
+        toast({ title: "Error", description: "Failed to load categories.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      setCategories(catData || []);
 
-  // Populate form data when article is loaded
-  useEffect(() => {
-    if (article) {
+      // Fetch article
+      const { data: artData, error: artError } = await supabase
+        .from("articles")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (artError || !artData) {
+        toast({ title: "Error", description: "Failed to load article.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      setArticle(artData);
       setFormData({
-        title: article.title,
-        slug: article.slug,
-        summary: article.summary,
-        content: article.content,
-        image: article.image || "",
-        topImage: article.topImage || "",
-        midImage: article.midImage || "",
-        bottomImage: article.bottomImage || "",
-        categoryId: article.category_id.toString(),
-        tags: article.tags || [],
-        featured: article.featured || false
+        title: artData.title,
+        slug: artData.slug,
+        summary: artData.summary,
+        content: artData.content,
+        image: artData.image || "",
+        topImage: artData.topImage || "",
+        midImage: artData.midImage || "",
+        bottomImage: artData.bottomImage || "",
+        category_id: artData.category_id?.toString() || "",
+        tags: artData.tags || [],
+        featured: artData.featured || false
       });
-    }
-  }, [article]);
+      setIsLoading(false);
+    };
+    fetchData();
+    // eslint-disable-next-line
+  }, [id]);
 
   // Generate slug from title
   const generateSlug = (title: string) => {
@@ -183,9 +111,7 @@ const AdminEditPost = () => {
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
     if (name === "title" && formData.slug === generateSlug(formData.title)) {
-      // Only auto-update slug if it hasn't been manually changed
       setFormData(prev => ({
         ...prev,
         [name]: value,
@@ -224,14 +150,12 @@ const AdminEditPost = () => {
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault();
-      
       if (!formData.tags.includes(tagInput.trim())) {
         setFormData(prev => ({
           ...prev,
           tags: [...prev.tags, tagInput.trim()]
         }));
       }
-      
       setTagInput("");
     }
   };
@@ -249,15 +173,12 @@ const AdminEditPost = () => {
       ...prev,
       [field]: imageUrl
     }));
-    console.log("handleImageUploaded", imageUrl, field, formData);
   };
 
   // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate form (remove image from required fields)
-    if (!formData.title || !formData.summary || !formData.content || !formData.categoryId) {
+    if (!formData.title || !formData.summary || !formData.content || !formData.category_id) {
       toast({
         title: "Missing fields",
         description: "Please fill in all required fields",
@@ -265,34 +186,59 @@ const AdminEditPost = () => {
       });
       return;
     }
-    
     setIsSubmitting(true);
-    
-    // Convert categoryId to number and prepare submit data
-    const submitData = {
-      ...formData,
-      categoryId: parseInt(formData.categoryId)
-    };
-    
-    updateArticle.mutate(submitData);
+    const { error } = await supabase
+      .from("articles")
+      .update({
+        ...formData,
+        category_id: parseInt(formData.category_id),
+      })
+      .eq("id", id);
+    setIsSubmitting(false);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update article. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success!",
+        description: "Article updated successfully",
+      });
+      navigate(`/article/${formData.slug}`);
+    }
   };
 
   // Handle delete
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setIsDeleting(true);
-    deleteArticle.mutate();
+    const { error } = await supabase
+      .from("articles")
+      .delete()
+      .eq("id", id);
+    setIsDeleting(false);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete article. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success!",
+        description: "Article deleted successfully",
+      });
+      navigate("/admin/manage");
+    }
   };
 
-  if (isUserLoading || isCategoriesLoading || isArticleLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
-  }
-
-  if (!userData || !userData.user) {
-    return null; // Will redirect in useEffect
   }
 
   if (!article) {
@@ -317,7 +263,6 @@ const AdminEditPost = () => {
       <Helmet>
         <title>Edit Article - Dive Tech</title>
       </Helmet>
-
       <div className="bg-secondary dark:bg-gray-800 min-h-screen py-8">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -331,7 +276,6 @@ const AdminEditPost = () => {
               </Button>
             </div>
           </div>
-
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
@@ -354,7 +298,6 @@ const AdminEditPost = () => {
                         required
                       />
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="slug">Slug <span className="text-red-500">*</span></Label>
                       <Input
@@ -369,7 +312,6 @@ const AdminEditPost = () => {
                         This will be used in the article URL
                       </p>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="summary">Summary <span className="text-red-500">*</span></Label>
                       <Textarea
@@ -382,7 +324,6 @@ const AdminEditPost = () => {
                         required
                       />
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="content">Content <span className="text-red-500">*</span></Label>
                       <RichTextEditor
@@ -396,7 +337,6 @@ const AdminEditPost = () => {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card>
                   <CardHeader>
                     <CardTitle>Images</CardTitle>
@@ -407,7 +347,7 @@ const AdminEditPost = () => {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="image">
-                        Thumbnail Image {/* Removed required asterisk */}
+                        Thumbnail Image
                       </Label>
                       <ImageUpload 
                         currentImage={formData.image} 
@@ -415,7 +355,6 @@ const AdminEditPost = () => {
                         label="Upload Thumbnail Image"
                       />
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                       <div className="space-y-2">
                         <Label htmlFor="topImage">Top Image (Optional)</Label>
@@ -425,7 +364,6 @@ const AdminEditPost = () => {
                           label="Upload Top Image"
                         />
                       </div>
-
                       <div className="space-y-2">
                         <Label htmlFor="midImage">Mid-Article Image (Optional)</Label>
                         <ImageUpload 
@@ -434,7 +372,6 @@ const AdminEditPost = () => {
                           label="Upload Mid Image"
                         />
                       </div>
-
                       <div className="space-y-2">
                         <Label htmlFor="bottomImage">Bottom Image (Optional)</Label>
                         <ImageUpload 
@@ -447,7 +384,6 @@ const AdminEditPost = () => {
                   </CardContent>
                 </Card>
               </div>
-
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -462,8 +398,8 @@ const AdminEditPost = () => {
                         Category <span className="text-red-500">*</span>
                       </Label>
                       <Select 
-                        value={formData.categoryId} 
-                        onValueChange={(value) => handleSelectChange("categoryId", value)}
+                        value={formData.category_id} 
+                        onValueChange={(value) => handleSelectChange("category_id", value)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
@@ -477,7 +413,6 @@ const AdminEditPost = () => {
                         </SelectContent>
                       </Select>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="tags">Tags</Label>
                       <div className="flex flex-wrap gap-2 mb-2">
@@ -508,7 +443,6 @@ const AdminEditPost = () => {
                         Add relevant tags to help with search and categorization
                       </p>
                     </div>
-
                     <div className="flex items-center justify-between pt-4">
                       <div className="space-y-0.5">
                         <Label htmlFor="featured">Feature this article</Label>
@@ -524,7 +458,6 @@ const AdminEditPost = () => {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card>
                   <CardHeader>
                     <CardTitle>Publishing</CardTitle>
@@ -536,7 +469,6 @@ const AdminEditPost = () => {
                           Review your article before updating. Make sure all required fields are filled.
                         </p>
                       </div>
-                      
                       <div className="pt-2">
                         <p className="text-sm font-medium mb-1">Article Stats</p>
                         <div className="grid grid-cols-2 gap-2">
@@ -575,7 +507,6 @@ const AdminEditPost = () => {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                    
                     <Button 
                       type="submit" 
                       disabled={isSubmitting}

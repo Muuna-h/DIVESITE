@@ -22,6 +22,8 @@ import Categories from "@/pages/Categories";
 import AuthGuard from "@/components/AuthGuard";
 import TermsAndConditions from "@/pages/TermsAndConditions";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import SearchResults from "@/pages/SearchResults";
+import Articles from "@/pages/Articles";
 
 function Router() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -56,6 +58,8 @@ function Router() {
           <Route path="/admin/login" component={Login} />
           <Route path="/terms-and-conditions" component={TermsAndConditions} />
           <Route path="/privacy-policy" component={PrivacyPolicy} />
+          <Route path="/search" component={SearchResults} />
+          <Route path="/articles" component={Articles} />
 
           {/* Protected Admin Routes */}
           <Route path="/admin" component={() => (

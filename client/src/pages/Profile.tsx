@@ -6,92 +6,113 @@ import emmanuelProfile from "../assets/emmanuel_profile.jpg";
 const ProfilePage = () => {
   const authorData = {
     name: "Emmanuel Muuna",
-    title: "Full Stack Web Developer & IT Manager",
-    bio: "I'm a passionate full stack web developer with expertise in creating modern, user-friendly websites and applications. I specialize in frontend development using React and backend integration with Node.js and PostgreSQL. As the IT Manager at Asili Marketplace, I build and manage their website while implementing innovative technology solutions.",
+    title: "Frontend Web Developer (ReactJS)",
+    bio: "I build responsive, fast, and practical web interfaces using ReactJS, Tailwind, and modern tooling. My focus is creating websites and apps that run smoothly, are easy to manage, and connect well with backend systems. I've worked on real client projects and personal platforms, including ecommerce, blogs, and special event sites. I handle everything from layout design to API connections and version control.",
     skills: [
-      "Web Development", "React", "Node.js", 
-      "UI/UX Design", "Database Management", "RESTful APIs"
+      "ReactJS", "Tailwind CSS", "JavaScript",
+      "Supabase", "REST API Integration", "Git & GitHub"
     ],
     education: [
       {
-        degree: "Bachelor of Microprocessor Technology & Instrumentation",
+        degree: "BSc. Microprocessor Technology & Instrumentation",
         institution: "University of Nairobi",
-        year: ""
+        year: "Expected 2025"
       },
       {
-        degree: "Full-Stack Web Development",
-        institution: "Tech Bootcamp Academy",
-        year: ""
+        degree: "Foundations of Cybersecurity",
+        institution: "Google",
+        year: "2025"
       }
     ],
     experience: [
       {
-        position: "IT Manager & Web Developer",
-        company: "Asili Marketplace",
-        period: "",
-        description: "Building and managing the company website, implementing technology solutions, and overseeing IT infrastructure. Leading development of e-commerce and digital marketing strategies."
+        position: "Frontend Developer",
+        company: "KUQUZA Ecommerce",
+        period: "2024 – Present",
+        description: "Built and deployed an ecommerce platform using ReactJS and Supabase. Developed the entire UI, integrated RESTful APIs, and maintained dynamic frontend features like featured products, admin tools, and dashboard metrics.",
+        liveUrl: "https://kuquza.co.ke"
       },
       {
         position: "Web Developer",
-        company: "Dive Tech",
-        period: "",
-        description: "Developing responsive websites and web applications using modern JavaScript frameworks. Leading frontend development and implementing database solutions."
+        company: "Divetech Blog",
+        period: "2023 – Present",
+        description: "Created a technology blog focused on digital innovation and cybersecurity. Handled site design, SEO setup, sitemap submission, Google indexing, and responsive content structure.",
+        liveUrl: "https://divetech.space"
+      },
+      {
+        position: "Wedding Website Developer",
+        company: "Private Event Client",
+        period: "2024",
+        description: "Designed and launched a fully responsive wedding website using ReactJS, with sections for couple bios, event timelines, and RSVP.",
+        liveUrl: "https://vanessa-augustinewedding.vercel.app/"
       },
       {
         position: "Junior Developer",
         company: "DiveTech Agency",
-        period: "",
-        description: "Created websites for small to medium businesses, implemented e-commerce solutions, and managed client websites."
+        period: "2022 – 2023",
+        description: "Worked on websites for small businesses and events. Focused on layout creation, user-friendly design, and clean source code using React."
       }
     ],
     services: [
       {
         title: "E-Commerce Websites",
-        description: "Custom online stores with seamless shopping experiences, secure payment processing, and inventory management.",
+        description: "Online stores with mobile support, checkout integration, and product tools.",
         features: [
-          "Mobile responsive design",
-          "Secure payment processing",
-          "Inventory management",
-          "Customer account portal",
-          "SEO optimization"
+          "Responsive layout",
+          "Product management",
+          "Payment integration",
+          "Order dashboard",
+          "SEO basics"
         ],
-        price: "Starting at $2,500"
+        price: "Starting at Ksh 120,000"
       },
       {
         title: "Blog Platforms",
-        description: "Professional content management systems with responsive design, SEO optimization, and easy content updates.",
+        description: "Simple blogs with clean design, easy editing tools, and shareable posts.",
         features: [
-          "Custom design",
-          "Content management system",
+          "Admin post manager",
+          "Responsive interface",
           "SEO optimization",
           "Social media integration",
-          "Comment management"
+          "Comment tools"
         ],
-        price: "Starting at $1,800"
+        price: "Starting at Ksh 60,000"
       },
       {
         title: "Business Websites",
-        description: "Corporate sites that effectively showcase your services, build credibility, and convert visitors to customers.",
+        description: "Corporate sites with contact forms, service pages, and polished UI.",
         features: [
-          "Professional design",
-          "Service/product showcases",
-          "Contact forms",
-          "Analytics integration",
-          "Speed optimization"
+          "Custom sections",
+          "Team profiles",
+          "Speed optimization",
+          "Google Maps and reviews",
+          "Analytics setup"
         ],
-        price: "Starting at $2,000"
+        price: "Starting at Ksh 70,000"
       },
       {
         title: "Web Applications",
-        description: "Custom web apps with user authentication, data management, and modern technology stacks tailored to your needs.",
+        description: "Custom apps with secure login, database functions, and REST API connections.",
         features: [
-          "User authentication",
-          "Database integration",
-          "API development",
-          "Custom functionality",
-          "Ongoing support"
+          "User accounts",
+          "Data management",
+          "Admin controls",
+          "Custom logic",
+          "Bug support"
         ],
-        price: "Starting at $4,000"
+        price: "Starting at Ksh 200,000"
+      },
+      {
+        title: "Event & Wedding Websites",
+        description: "Personalized event pages for sharing info, stories, and RSVPs with guests.",
+        features: [
+          "Timeline section",
+          "Couple bio",
+          "Photo gallery",
+          "Guest RSVP form",
+          "Location map"
+        ],
+        price: "Starting at Ksh 40,000"
       }
     ]
   };
@@ -183,6 +204,108 @@ const ProfilePage = () => {
         </div>
       </section>
 
+      {/* Live Projects section */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
+        <div className="container mx-auto px-4">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="font-heading text-3xl font-bold mb-4 text-center"
+          >
+            Live Projects
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mb-12 text-center"
+          >
+            Check out some of my recent projects that are live and running
+          </motion.p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+              <div className="p-6">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white mb-6">
+                  <i className="fas fa-shopping-cart text-xl"></i>
+                </div>
+                <h3 className="font-heading text-xl font-bold mb-3">KUQUZA Ecommerce</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Full-featured ecommerce platform built with ReactJS and Supabase
+                </p>
+                <a 
+                  href="https://kuquza.co.ke" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-sm py-2 px-4 rounded-full transition-all duration-300 shadow hover:shadow-md inline-flex items-center"
+                >
+                  See More <i className="fas fa-arrow-right ml-1.5"></i>
+                </a>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="h-2 bg-gradient-to-r from-green-500 to-teal-500"></div>
+              <div className="p-6">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center text-white mb-6">
+                  <i className="fas fa-blog text-xl"></i>
+                </div>
+                <h3 className="font-heading text-xl font-bold mb-3">Divetech Blog</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Technology blog focused on digital innovation and cybersecurity
+                </p>
+                <a 
+                  href="https://divetech.space" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-sm py-2 px-4 rounded-full transition-all duration-300 shadow hover:shadow-md inline-flex items-center"
+                >
+                  See More <i className="fas fa-arrow-right ml-1.5"></i>
+                </a>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="h-2 bg-gradient-to-r from-pink-500 to-rose-500"></div>
+              <div className="p-6">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center text-white mb-6">
+                  <i className="fas fa-heart text-xl"></i>
+                </div>
+                <h3 className="font-heading text-xl font-bold mb-3">Wedding Website</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Responsive wedding website with timelines, bios, and RSVP features
+                </p>
+                <a 
+                  href="https://vanessa-augustinewedding.vercel.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-sm py-2 px-4 rounded-full transition-all duration-300 shadow hover:shadow-md inline-flex items-center"
+                >
+                  See More <i className="fas fa-arrow-right ml-1.5"></i>
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* About section */}
       <section className="py-16 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
@@ -238,7 +361,17 @@ const ProfilePage = () => {
                       <h4 className="font-bold text-lg">{exp.position}</h4>
                       <p className="text-gray-600 dark:text-gray-400">{exp.company}</p>
                       <p className="text-primary dark:text-accent text-sm mb-2">{exp.period}</p>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm">{exp.description}</p>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">{exp.description}</p>
+                      {exp.liveUrl && (
+                        <a 
+                          href={exp.liveUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-sm py-2 px-4 rounded-full transition-all duration-300 shadow hover:shadow-md inline-flex items-center"
+                        >
+                          See More <i className="fas fa-arrow-right ml-1.5"></i>
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -271,93 +404,74 @@ const ProfilePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
-                title: "Simple Website",
-                description: "Clean, professional websites with essential pages and features for small businesses and personal brands.",
-                features: [
-                  "Responsive design",
-                  "5-7 pages (Home, About, Services, Contact, etc.)",
-                  "Contact form",
-                  "SEO basics",
-                  "Social media integration"
-                ],
-                price: "Starting at Ksh 40,000",
-                icon: "fa-globe",
-                color: "from-blue-400 to-cyan-500",
-              },
-              {
                 title: "E-Commerce Websites",
-                description: "Custom online stores with seamless shopping experiences, secure payment processing, and inventory management.",
+                description: "Online stores with mobile support, checkout integration, and product tools.",
                 features: [
-                  "Mobile responsive design",
+                  "Responsive layout",
                   "Product management",
-                  "Secure payment integration",
-                  "Order tracking",
-                  "Customer accounts",
-                  "SEO optimization"
+                  "Payment integration",
+                  "Order dashboard",
+                  "SEO basics"
                 ],
                 price: "Starting at Ksh 120,000",
                 icon: "fa-shopping-cart",
                 color: "from-blue-500 to-indigo-600",
               },
               {
-                title: "Business Websites",
-                description: "Corporate sites that effectively showcase your services, build credibility, and convert visitors to customers.",
-                features: [
-                  "Professional design",
-                  "Service/product showcases",
-                  "Team profiles",
-                  "Testimonials",
-                  "Contact forms",
-                  "Analytics integration"
-                ],
-                price: "Starting at Ksh 70,000",
-                icon: "fa-briefcase",
-                color: "from-purple-500 to-pink-600",
-              },
-              {
                 title: "Blog Platforms",
-                description: "Professional content management systems with responsive design, SEO optimization, and easy content updates.",
+                description: "Simple blogs with clean design, easy editing tools, and shareable posts.",
                 features: [
-                  "Custom design",
-                  "Content management system",
+                  "Admin post manager",
+                  "Responsive interface",
                   "SEO optimization",
                   "Social media integration",
-                  "Comment management",
-                  "Analytics integration"
+                  "Comment tools"
                 ],
                 price: "Starting at Ksh 60,000",
                 icon: "fa-blog",
                 color: "from-green-500 to-teal-500",
               },
               {
-                title: "Web Applications",
-                description: "Custom web apps with user authentication, data management, and modern technology stacks tailored to your needs.",
+                title: "Business Websites",
+                description: "Corporate sites with contact forms, service pages, and polished UI.",
                 features: [
-                  "User authentication",
-                  "Database integration",
-                  "API development",
-                  "Custom functionality",
-                  "Ongoing support",
-                  "Deployment setup"
+                  "Custom sections",
+                  "Team profiles",
+                  "Speed optimization",
+                  "Google Maps and reviews",
+                  "Analytics setup"
+                ],
+                price: "Starting at Ksh 70,000",
+                icon: "fa-briefcase",
+                color: "from-purple-500 to-pink-600",
+              },
+              {
+                title: "Web Applications",
+                description: "Custom apps with secure login, database functions, and REST API connections.",
+                features: [
+                  "User accounts",
+                  "Data management",
+                  "Admin controls",
+                  "Custom logic",
+                  "Bug support"
                 ],
                 price: "Starting at Ksh 200,000",
                 icon: "fa-laptop-code",
                 color: "from-amber-500 to-orange-600",
               },
               {
-                title: "Portfolio Websites",
-                description: "Showcase your work, skills, and achievements with a professional portfolio website.",
+                title: "Event & Wedding Websites",
+                description: "Personalized event pages for sharing info, stories, and RSVPs with guests.",
                 features: [
-                  "Project gallery",
-                  "Resume/CV section",
-                  "Testimonials",
-                  "Contact form",
-                  "Social media integration",
-                  "Blog option"
+                  "Timeline section",
+                  "Couple bio",
+                  "Photo gallery",
+                  "Guest RSVP form",
+                  "Location map"
                 ],
-                price: "Starting at Ksh 50,000",
-                icon: "fa-id-badge",
-                color: "from-purple-400 to-pink-500",
+                price: "Starting at Ksh 40,000",
+                icon: "fa-heart",
+                color: "from-pink-500 to-rose-500",
               }
             ].map((service, index) => (
               <motion.div
@@ -418,7 +532,7 @@ const ProfilePage = () => {
                 >
                   <h3 className="font-heading text-3xl md:text-4xl font-bold mb-6 text-white">
                     Need a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">Custom Solution?</span>
-            </h3>
+                  </h3>
                   <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10">
                     Contact me to discuss your project requirements and get a personalized quote. Let's create something amazing together!
                   </p>
@@ -433,7 +547,7 @@ const ProfilePage = () => {
                         <a className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium text-base py-3 px-8 rounded-full shadow-lg inline-flex items-center justify-center">
                           Get in Touch <i className="fas fa-arrow-right ml-2"></i>
                         </a>
-            </Link>
+                      </Link>
                     </motion.div>
                     
                     <motion.div

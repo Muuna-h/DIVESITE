@@ -29,6 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { loc: "/services", priority: "0.6", changefreq: "monthly" },
       { loc: "/profile", priority: "0.6", changefreq: "monthly" },
       { loc: "/categories", priority: "0.8", changefreq: "weekly" },
+      { loc: "/articles", priority: "0.8", changefreq: "daily" }, // <-- Added this line
       { loc: "/terms-and-conditions", priority: "0.4", changefreq: "yearly" },
       { loc: "/privacy-policy", priority: "0.4", changefreq: "yearly" },
     ];
