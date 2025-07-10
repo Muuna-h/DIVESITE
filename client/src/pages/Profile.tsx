@@ -6,7 +6,7 @@ import emmanuelProfile from "../assets/emmanuel_profile.jpg";
 const ProfilePage = () => {
   const authorData = {
     name: "Emmanuel Muuna",
-    title: "Frontend Web Developer (ReactJS)",
+    title: "FullStack Web Developer (ReactJS)",
     bio: "I build responsive, fast, and practical web interfaces using ReactJS, Tailwind, and modern tooling. My focus is creating websites and apps that run smoothly, are easy to manage, and connect well with backend systems. I've worked on real client projects and personal platforms, including ecommerce, blogs, and special event sites. I handle everything from layout design to API connections and version control.",
     skills: [
       "ReactJS", "Tailwind CSS", "JavaScript",
@@ -16,7 +16,7 @@ const ProfilePage = () => {
       {
         degree: "BSc. Microprocessor Technology & Instrumentation",
         institution: "University of Nairobi",
-        year: "Expected 2025"
+        year: "2025"
       },
       {
         degree: "Foundations of Cybersecurity",
@@ -26,7 +26,7 @@ const ProfilePage = () => {
     ],
     experience: [
       {
-        position: "Frontend Developer",
+        position: "FullStach Developer",
         company: "KUQUZA Ecommerce",
         period: "2024 – Present",
         description: "Built and deployed an ecommerce platform using ReactJS and Supabase. Developed the entire UI, integrated RESTful APIs, and maintained dynamic frontend features like featured products, admin tools, and dashboard metrics.",
@@ -47,7 +47,7 @@ const ProfilePage = () => {
         liveUrl: "https://vanessa-augustinewedding.vercel.app/"
       },
       {
-        position: "Junior Developer",
+        position: "Senior Developer",
         company: "DiveTech Agency",
         period: "2022 – 2023",
         description: "Worked on websites for small businesses and events. Focused on layout creation, user-friendly design, and clean source code using React."
