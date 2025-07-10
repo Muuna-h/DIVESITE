@@ -256,8 +256,8 @@ const AdminEditPost = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
-    if (!formData.title || !formData.summary || !formData.content || !formData.image || !formData.categoryId) {
+    // Validate form (remove image from required fields)
+    if (!formData.title || !formData.summary || !formData.content || !formData.categoryId) {
       toast({
         title: "Missing fields",
         description: "Please fill in all required fields",
@@ -407,7 +407,7 @@ const AdminEditPost = () => {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="image">
-                        Thumbnail Image <span className="text-red-500">*</span>
+                        Thumbnail Image {/* Removed required asterisk */}
                       </Label>
                       <ImageUpload 
                         currentImage={formData.image} 
