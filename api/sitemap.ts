@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
+  process.env.SUPABASE_ANON_KEY! // <-- Use the correct env variable name
 );
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const now = new Date().toISOString();
 
     const { data: articles, error: articlesError } = await supabase
-      .from("articles") // <-- use the correct table name
+      .from("articles")
       .select("slug, updated_at");
     if (articlesError) throw articlesError;
 
@@ -29,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { loc: "/services", priority: "0.6", changefreq: "monthly" },
       { loc: "/profile", priority: "0.6", changefreq: "monthly" },
       { loc: "/categories", priority: "0.8", changefreq: "weekly" },
-      { loc: "/articles", priority: "0.8", changefreq: "daily" }, // <-- Added this line
+      { loc: "/articles", priority: "0.8", changefreq: "daily" },
       { loc: "/terms-and-conditions", priority: "0.4", changefreq: "yearly" },
       { loc: "/privacy-policy", priority: "0.4", changefreq: "yearly" },
     ];
@@ -74,6 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate");
     res.status(200).send(xml);
   } catch (err: any) {
+    res.setHeader("Content-Type", "text/plain");
     res.status(500).send("Sitemap generation error: " + err.message);
   }
 }
