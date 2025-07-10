@@ -14,11 +14,11 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
     slug = "article-slug",
     image = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80",
     createdAt = new Date(),
-    category_id = 1
+    categoryId = 1
   } = article;
 
   const categorySlug = article.category?.slug ||
-    ["it", "software", "hardware", "emerging", "green", "media", "communication", "jobs", "reviews"][category_id - 1] ||
+    ["it", "software", "hardware", "emerging", "green", "media", "communication", "jobs", "reviews"][categoryId - 1] ||
     "it";
 
   const categoryColors = getCategoryColor(categorySlug);
