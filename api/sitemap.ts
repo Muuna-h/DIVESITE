@@ -4,12 +4,13 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY! // <-- Use the correct env variable name
+  process.env.SUPABASE_ANON_KEY!
 );
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const baseUrl = "https://divetech.space";
+    // Use www in the base URL
+    const baseUrl = "https://www.divetech.space";
     const now = new Date().toISOString();
 
     const { data: articles, error: articlesError } = await supabase
