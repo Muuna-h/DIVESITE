@@ -24,6 +24,10 @@ import TermsAndConditions from "@/pages/TermsAndConditions";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import SearchResults from "@/pages/SearchResults";
 import Articles from "@/pages/Articles";
+import ForumPage from "@/pages/forum";
+import CategoryTopicsPage from "@/pages/forum/category";
+import TopicPage from "@/pages/forum/topic";
+import NewTopicPage from "@/pages/forum/new-topic";
 
 function Router() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -60,6 +64,10 @@ function Router() {
           <Route path="/privacy-policy" component={PrivacyPolicy} />
           <Route path="/search" component={SearchResults} />
           <Route path="/articles" component={Articles} />
+          <Route path="/forum" component={ForumPage} />
+          <Route path="/forum/categories/:categorySlug" component={CategoryTopicsPage} />
+          <Route path="/forum/topics/:slug" component={TopicPage} />
+          <Route path="/forum/new-topic" component={NewTopicPage} />
 
           {/* Protected Admin Routes */}
           <Route path="/admin" component={() => (

@@ -175,3 +175,15 @@
 .animate-logo-glow {
   animation: logo-glow 4s ease-in-out infinite;
 }
+
+.article-content iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.75rem; /* 12px */
+}
+
+.article-content iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.75rem; /* 12px */
+}

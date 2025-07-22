@@ -1,13 +1,16 @@
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import { Link } from "wouter";
 import NewsletterSignup from "@/components/NewsletterSignup";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Article as ArticleType } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Loader2, MessageCircle, PlusCircle } from "lucide-react";
+import { useSupabaseAuth } from "@/lib/useSupabaseAuth";
 
 // 👇 Extend the type to include users and categories
 type ExtendedArticle = ArticleType & {
@@ -24,6 +27,10 @@ type ExtendedArticle = ArticleType & {
 
 const Article = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [discussionSlug, setDiscussionSlug] = useState<string | null>(null);
+  const [isCreatingDiscussion, setIsCreatingDiscussion] = useState(false);
+  const { isAuthenticated, user } = useSupabaseAuth();
+  const queryClient = useQueryClient();
 
   const { data: article, isLoading, isError } = useQuery<ExtendedArticle>({
     queryKey: ["article", slug],
@@ -38,6 +45,67 @@ const Article = () => {
       return data;
     },
   });
+
+  // Fetch the discussion topic for this article
+  useEffect(() => {
+    if (!slug) return;
+    const fetchDiscussionTopic = async () => {
+      const { data } = await supabase
+        .from("forum_topics")
+        .select("slug")
+        .eq("slug", `discuss-${slug}`)
+        .single();
+      
+      if (data) {
+        setDiscussionSlug(data.slug);
+      }
+    };
+    
+    fetchDiscussionTopic();
+  }, [slug]);
+
+  const createDiscussionTopic = async () => {
+    if (!article || !user) return;
+    setIsCreatingDiscussion(true);
+    try {
+      // 1. Get the 'article-discussions' category ID
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('forum_categories')
+        .select('id')
+        .eq('slug', 'article-discussions')
+        .single();
+
+      if (categoryError || !categoryData) throw new Error('Discussion category not found.');
+
+      // 2. Create the new topic
+      const newTopic = {
+        title: `Discussion: ${article.title}`,
+        slug: `discuss-${article.slug}`,
+        content: `This is a discussion topic for the article: [${article.title}](/article/${article.slug}). Join the conversation!`,
+        authorId: user.id,
+        categoryId: categoryData.id,
+      };
+
+      const { data: newTopicData, error: topicError } = await supabase
+        .from('forum_topics')
+        .insert(newTopic)
+        .select('slug')
+        .single();
+
+      if (topicError) throw topicError;
+
+      if (newTopicData) {
+        setDiscussionSlug(newTopicData.slug);
+        queryClient.invalidateQueries({ queryKey: ['forumTopics'] });
+      }
+
+    } catch (error) {
+      console.error("Error creating discussion topic:", error);
+      // You could add a toast notification here to inform the user
+    } finally {
+      setIsCreatingDiscussion(false);
+    }
+  };
 
   useEffect(() => {
     if (article?.id) {
@@ -130,12 +198,38 @@ const Article = () => {
             </motion.h1>
 
             <motion.div
-              className="prose sm:prose-lg max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-primary dark:prose-a:text-accent prose-img:rounded-xl"
+              className="prose sm:prose-lg max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-primary dark:prose-a:text-accent prose-img:rounded-xl article-content"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               dangerouslySetInnerHTML={{ __html: content || "Content not available." }}
             />
+
+            <div className="mt-8 flex justify-between items-center">
+              {discussionSlug ? (
+                <Link href={`/forum/topics/${discussionSlug}`}>
+                  <Button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-blue-500/25">
+                    <MessageCircle className="mr-2 h-5 w-5" />
+                    See Discussion
+                  </Button>
+                </Link>
+              ) : (
+                isAuthenticated && (
+                  <Button 
+                    onClick={createDiscussionTopic}
+                    disabled={isCreatingDiscussion}
+                    className="bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-green-500/25"
+                  >
+                    {isCreatingDiscussion ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <PlusCircle className="mr-2 h-5 w-5" />
+                    )}
+                    Add to Discussion
+                  </Button>
+                )
+              )}
+            </div>
 
             <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
               <h3 className="font-heading text-lg font-bold mb-3">Share this article</h3>

@@ -3,6 +3,42 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Forum Categories table
+export const forumCategories = pgTable("forum_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  icon: text("icon"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// Forum Topics table
+export const forumTopics = pgTable("forum_topics", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  content: text("content").notNull(),
+  categoryId: integer("category_id").notNull().references(() => forumCategories.id),
+  authorId: integer("author_id").notNull().references(() => users.id),
+  views: integer("views").default(0),
+  isPinned: boolean("is_pinned").default(false),
+  isLocked: boolean("is_locked").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// Forum Replies table
+export const forumReplies = pgTable("forum_replies", {
+  id: serial("id").primaryKey(),
+  content: text("content").notNull(),
+  topicId: integer("topic_id").notNull().references(() => forumTopics.id),
+  authorId: integer("author_id").notNull().references(() => users.id),
+  isSolution: boolean("is_solution").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(), // Using serial for auto-increment
@@ -159,8 +195,60 @@ export const insertSiteStatsSchema = createInsertSchema(siteStats).pick({
 });
 
 // Export types
+// Forum Relations
+export const forumTopicsRelations = relations(forumTopics, ({ one, many }) => ({
+  category: one(forumCategories, {
+    fields: [forumTopics.categoryId],
+    references: [forumCategories.id],
+  }),
+  author: one(users, {
+    fields: [forumTopics.authorId],
+    references: [users.id],
+  }),
+  replies: many(forumReplies),
+}));
+
+export const forumRepliesRelations = relations(forumReplies, ({ one }) => ({
+  topic: one(forumTopics, {
+    fields: [forumReplies.topicId],
+    references: [forumTopics.id],
+  }),
+  author: one(users, {
+    fields: [forumReplies.authorId],
+    references: [users.id],
+  }),
+}));
+
+// Forum Schemas
+export const insertForumCategorySchema = createInsertSchema(forumCategories).pick({
+  name: true,
+  slug: true,
+  description: true,
+  icon: true,
+});
+
+export const insertForumTopicSchema = createInsertSchema(forumTopics).pick({
+  title: true,
+  slug: true,
+  content: true,
+  categoryId: true,
+  authorId: true,
+  isPinned: true,
+  isLocked: true,
+});
+
+export const insertForumReplySchema = createInsertSchema(forumReplies).pick({
+  content: true,
+  topicId: true,
+  authorId: true,
+  isSolution: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type ForumCategory = typeof forumCategories.$inferSelect;
+export type ForumTopic = typeof forumTopics.$inferSelect;
+export type ForumReply = typeof forumReplies.$inferSelect;
 
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;

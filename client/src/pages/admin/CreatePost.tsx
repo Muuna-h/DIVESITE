@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useArticles } from "@/hooks/useArticles";
 import { 
   Card, 
   CardContent, 
@@ -137,10 +138,10 @@ const AdminCreatePost = () => {
   }, [navigate]);
 
   // Query for categories - only enabled when authenticated
-  const { data: categories, isLoading: isCategoriesLoading, error: categoriesError } = useQuery<{ categories: Category[] }>({
+  const { data: categories, isLoading: isCategoriesLoading, error: categoriesError } = useQuery<{ categories: Category[] }, Error>({
     queryKey: ['/api/categories'],
     enabled: !!authState.user && !authState.isLoading,
-    select: (data) => data.categories,
+    select: (data: { categories: Category[] }) => data.categories,
     retry: 3,
     retryDelay: 1000,
   });
@@ -165,7 +166,7 @@ const AdminCreatePost = () => {
       }
 
       // Insert the article data into Supabase
-      const { data, error } = await supabase
+      const { data: article, error: articleError } = await supabase
         .from('articles')
         .insert({
           title: articleData.title,
@@ -184,18 +185,52 @@ const AdminCreatePost = () => {
         .select()
         .single();
       
-      if (error) throw error;
-      return data;
+      if (articleError) throw articleError;
+
+      // Get the article discussions category ID
+      const { data: discussionCategory } = await supabase
+        .from('forum_categories')
+        .select('id')
+        .eq('slug', 'article-discussions')
+        .single();
+      
+      // Create a discussion topic for the article
+      const { data: discussionTopic, error: discussionError } = await supabase
+        .from('forum_topics')
+        .insert({
+          title: `Discussion: ${articleData.title}`,
+          slug: `discuss-${articleData.slug}`,
+          content: `This is a discussion thread for the article "${articleData.title}". Feel free to share your thoughts and questions about the article here.\n\nOriginal Article: [${articleData.title}](/article/${articleData.slug})\n\n${articleData.summary}`,
+          authorId: authState.user.id,
+          categoryId: discussionCategory?.id || 1, // Use the fetched ID or a default
+          isLocked: false,
+          views: 0
+        })
+        .select()
+        .single();
+
+      if (discussionError) {
+        console.error('Error creating discussion topic:', discussionError);
+        // Don't fail the article creation if discussion creation fails
+      }
+
+      return {
+        article,
+        discussionTopic
+      };
     },
     onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: "Article created successfully",
+        description: data.discussionTopic 
+          ? "Article and discussion topic created successfully"
+          : "Article created successfully (discussion topic creation failed)",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
       queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
       queryClient.invalidateQueries({ queryKey: ['/api/articles/latest'] });
-      navigate(`/article/${data.slug}`);
+      queryClient.invalidateQueries({ queryKey: ['/forum/topics'] });
+      navigate(`/article/${data.article.slug}`);
     },
     onError: (error) => {
       console.error("Error creating article:", error);
@@ -236,7 +271,7 @@ const AdminCreatePost = () => {
   };
 
   // Handle select change
-  const handleSelectChange = (name: string, value: string) => {
+  const handleSelectChange = (name: string, value: string): void => {
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -516,7 +551,7 @@ const AdminCreatePost = () => {
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories?.map(category => (
+                          {categories?.map((category: Category) => (
                             <SelectItem key={category.id} value={category.id.toString()}>
                               {category.name}
                             </SelectItem>

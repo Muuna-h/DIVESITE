@@ -89,6 +89,7 @@ const Header = ({ isSearchOpen, setIsSearchOpen }: HeaderProps) => {
           <nav className="hidden md:block">
             <ul className="flex space-x-8">
               <li><a href="/" onClick={handleNavigation("/")} className="font-medium hover:text-primary dark:hover:text-accent transition-colors">Home</a></li>
+              <li><a href="/forum" onClick={handleNavigation("/forum")} className="font-medium hover:text-primary dark:hover:text-accent transition-colors">Forum</a></li>
               <li className="relative group">
                 <button className="font-medium hover:text-primary dark:hover:text-accent transition-colors flex items-center">
                   Categories <i className="fas fa-chevron-down ml-1 text-xs"></i>
@@ -146,7 +147,7 @@ const Header = ({ isSearchOpen, setIsSearchOpen }: HeaderProps) => {
         {isMobileMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {["Home", "About", "Services", "Contact", "Profile"].map((label) => (
+              {["Home", "Forum", "About", "Services", "Contact", "Profile"].map((label) => (
                 <a
                   key={label}
                   href={`/${label.toLowerCase()}`}

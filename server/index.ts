@@ -8,6 +8,7 @@ import path from "path";
 import cors from 'cors';
 import { categories } from "@shared/schema";
 import articles from "./src/routes/articles";
+import forum from "./src/routes/forum";
 const { Pool } = pg;
 
 // Initialize PostgreSQL session store

@@ -1,9 +1,25 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { createClient } from "@supabase/supabase-js";
 
+// Create a Supabase client with custom fetch options for caching
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
   import.meta.env.VITE_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: true,
+      storageKey: 'supabase.auth.token',
+    },
+    global: {
+      fetch: (url, options) => {
+        const headers = new Headers(options?.headers);
+        if (!headers.has('Cache-Control')) {
+          headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+        }
+        return fetch(url, { ...options, headers });
+      },
+    },
+  }
 );
 
 async function throwIfResNotOk(res: Response) {

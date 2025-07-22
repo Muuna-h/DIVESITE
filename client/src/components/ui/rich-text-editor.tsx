@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import ReactQuill from 'react-quill';
+import { useState, useCallback, useEffect } from 'react';
+import ReactQuill, { Range as RangeStatic } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import YouTubeButton from './youtube-button';
 
 interface RichTextEditorProps {
   value: string;
@@ -8,26 +9,50 @@ interface RichTextEditorProps {
   placeholder?: string;
 }
 
-const modules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-    ['link', 'image', 'video'],
-    ['clean']
-  ],
-};
-
-const formats = [
-  'header',
-  'bold', 'italic', 'underline', 'strike', 'blockquote',
-  'list', 'bullet', 'indent',
-  'link', 'image', 'video'
-];
-
-const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder }) => {
+  const [quill, setQuill] = useState<ReactQuill | null>(null);
   const [editorValue, setEditorValue] = useState(value);
   const [mounted, setMounted] = useState(false);
+
+  const insertYouTubeVideo = useCallback(() => {
+    const url = prompt('Please enter the YouTube video URL:');
+    if (!url) return;
+
+    // Extract video ID from various YouTube URL formats
+    const videoId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
+
+    if (!videoId) {
+      alert('Invalid YouTube URL. Please enter a valid YouTube video URL.');
+      return;
+    }
+
+    // Insert the YouTube iframe
+    const editor = quill?.getEditor();
+    if (editor) {
+      const { index = 0 } = editor.getSelection() || {};
+      editor.insertEmbed(index, 'video', `https://www.youtube.com/embed/${videoId}`);
+      editor.setSelection(index + 1, 0);
+    }
+  }, [quill]);
+
+    const modules = {
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+        ['link', 'image'],
+        ['clean']
+      ],
+    }
+  };
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video'
+  ];
 
   // Handle SSR
   useEffect(() => {
@@ -55,6 +80,9 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
 
   return (
     <div className="rich-text-editor">
+      <div className="flex items-center space-x-2 mb-2">
+        <YouTubeButton onClick={insertYouTubeVideo} />
+      </div>
       <style dangerouslySetInnerHTML={{ __html: `
         .rich-text-editor .ql-container {
           min-height: 300px;

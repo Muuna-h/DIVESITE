@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { supabase } from "./db";
 import { sql } from "drizzle-orm";
 import { categories, articles, users } from "@shared/schema";
+import forumRoutes from "./src/routes/forum";
 import session from "express-session";
 import memorystore from "memorystore";
 import passport from "passport";
@@ -185,6 +186,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure passport
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Register forum routes
+  app.use('/api/forum', forumRoutes);
 
   passport.use(
     new LocalStrategy(async (username: string, password: string, done) => {
