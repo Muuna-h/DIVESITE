@@ -4,12 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
+  process.env.SUPABASE_ANON_KEY! // <-- Use the correct env variable name
 );
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // Use www in the base URL
     const baseUrl = "https://www.divetech.space";
     const now = new Date().toISOString();
 
@@ -23,6 +22,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select("slug, updated_at");
     if (categoriesError) throw categoriesError;
 
+    // Add forum topics and categories queries
+    const { data: forumTopics, error: forumError } = await supabase
+      .from("forum_topics")
+      .select("slug, updated_at");
+    if (forumError) throw forumError;
+
+    const { data: forumCategories, error: forumCategoriesError } = await supabase
+      .from("forum_categories")
+      .select("slug, updated_at");
+    if (forumCategoriesError) throw forumCategoriesError;
+
     const staticRoutes = [
       { loc: "/", priority: "1.0", changefreq: "weekly" },
       { loc: "/about", priority: "0.5", changefreq: "monthly" },
@@ -31,6 +41,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { loc: "/profile", priority: "0.6", changefreq: "monthly" },
       { loc: "/categories", priority: "0.8", changefreq: "weekly" },
       { loc: "/articles", priority: "0.8", changefreq: "daily" },
+      { loc: "/forum", priority: "0.8", changefreq: "daily" },
+      { loc: "/forum/new-topic", priority: "0.6", changefreq: "weekly" },
       { loc: "/terms-and-conditions", priority: "0.4", changefreq: "yearly" },
       { loc: "/privacy-policy", priority: "0.4", changefreq: "yearly" },
     ];
@@ -62,6 +74,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       </url>
     `);
 
+    const forumUrls = (forumTopics || []).map(topic => `
+      <url>
+        <loc>${baseUrl}/forum/topics/${topic.slug}</loc>
+        <lastmod>${new Date(topic.updated_at || now).toISOString()}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.8</priority>
+      </url>
+    `);
+
+    const forumCategoryUrls = (forumCategories || []).map(category => `
+      <url>
+        <loc>${baseUrl}/forum/categories/${category.slug}</loc>
+        <lastmod>${new Date(category.updated_at || now).toISOString()}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+      </url>
+    `);
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
     <urlset 
       xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -69,6 +99,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ${staticUrls.join("\n")}
       ${articleUrls.join("\n")}
       ${categoryUrls.join("\n")}
+      ${forumUrls.join("\n")}
+      ${forumCategoryUrls.join("\n")}
     </urlset>`;
 
     res.setHeader("Content-Type", "application/xml");
