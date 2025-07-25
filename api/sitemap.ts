@@ -47,61 +47,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { loc: "/privacy-policy", priority: "0.4", changefreq: "yearly" },
     ];
 
-    const staticUrls = staticRoutes.map(({ loc, priority, changefreq }) => `
-      <url>
-        <loc>${baseUrl}${loc}</loc>
-        <lastmod>${now}</lastmod>
-        <changefreq>${changefreq}</changefreq>
-        <priority>${priority}</priority>
-      </url>
-    `);
+    const staticUrls = staticRoutes.map(({ loc, priority, changefreq }) => `  <url>
+    <loc>${baseUrl}${loc}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`);
 
-    const articleUrls = (articles || []).map(article => `
-      <url>
-        <loc>${baseUrl}/article/${article.slug}</loc>
-        <lastmod>${new Date(article.updated_at || now).toISOString()}</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.9</priority>
-      </url>
-    `);
+    const articleUrls = (articles || []).map(article => `  <url>
+    <loc>${baseUrl}/article/${article.slug}</loc>
+    <lastmod>${new Date(article.updated_at || now).toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>`);
 
-    const categoryUrls = (categories || []).map(category => `
-      <url>
-        <loc>${baseUrl}/category/${category.slug}</loc>
-        <lastmod>${new Date(category.updated_at || now).toISOString()}</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-      </url>
-    `);
+    const categoryUrls = (categories || []).map(category => `  <url>
+    <loc>${baseUrl}/category/${category.slug}</loc>
+    <lastmod>${new Date(category.updated_at || now).toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`);
 
-    const forumUrls = (forumTopics || []).map(topic => `
-      <url>
-        <loc>${baseUrl}/forum/topics/${topic.slug}</loc>
-        <lastmod>${new Date(topic.updated_at || now).toISOString()}</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
-      </url>
-    `);
+    const forumUrls = (forumTopics || []).map(topic => `  <url>
+    <loc>${baseUrl}/forum/topics/${topic.slug}</loc>
+    <lastmod>${new Date(topic.updated_at || now).toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>`);
 
-    const forumCategoryUrls = (forumCategories || []).map(category => `
-      <url>
-        <loc>${baseUrl}/forum/categories/${category.slug}</loc>
-        <lastmod>${new Date(category.updated_at || now).toISOString()}</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-      </url>
-    `);
+    const forumCategoryUrls = (forumCategories || []).map(category => `  <url>
+    <loc>${baseUrl}/forum/categories/${category.slug}</loc>
+    <lastmod>${new Date(category.updated_at || now).toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`);
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
-    <urlset 
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-    >
-      ${staticUrls.join("\n")}
-      ${articleUrls.join("\n")}
-      ${categoryUrls.join("\n")}
-      ${forumUrls.join("\n")}
-      ${forumCategoryUrls.join("\n")}
-    </urlset>`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticUrls.join('\n')}
+${articleUrls.join('\n')}
+${categoryUrls.join('\n')}
+${forumUrls.join('\n')}
+${forumCategoryUrls.join('\n')}
+</urlset>`;
 
     res.setHeader("Content-Type", "application/xml");
     res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate");
