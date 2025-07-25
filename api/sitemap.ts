@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const baseUrl = "https://www.divetech.space";
+    const baseUrl = "https://divetech.space";
     const now = new Date().toISOString();
 
     const { data: articles, error: articlesError } = await supabase
