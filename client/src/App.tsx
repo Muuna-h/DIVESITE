@@ -32,22 +32,6 @@ import NewTopicPage from "@/pages/forum/new-topic";
 function Router() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [location] = useLocation();
-
-    // Open new tab once on first user click
-    useEffect(() => {
-      const handleClick = () => {
-        window.open("https://firmwarrior.com/saxa86mvav?key=e6ec4c4ae4e23e005dee04ec1f083ace", "_blank"); // Replace with your link
-        document.removeEventListener("click", handleClick); // Run only once
-      };
-  
-      document.addEventListener("click", handleClick);
-  
-      return () => {
-        document.removeEventListener("click", handleClick);
-      };
-    }, []);
-  
-
   // Scroll to top on route change
   useEffect(() => {
     scrollToTop();
