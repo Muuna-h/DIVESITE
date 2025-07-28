@@ -16,6 +16,18 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    // Validate required fields for mobile-friendly error handling
+    if (!title || !content || !categoryId) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        details: {
+          title: !title ? "Title is required" : null,
+          content: !content ? "Content is required" : null,
+          categoryId: !categoryId ? "Category is required" : null
+        }
+      });
+    }
+
     // Start a Supabase transaction
     const { data: article, error: articleError } = await supabase.from('articles').insert({
       title,
@@ -52,42 +64,160 @@ ${summary}`,
     }
 
     return res.status(201).json({
+      success: true,
       article,
-      discussionTopic: topic || null
+      discussionTopic: topic || null,
+      message: "Article created successfully"
     });
   } catch (error) {
     console.error('Error creating article:', error);
-    return res.status(500).json({ error: "Failed to create article" });
+    return res.status(500).json({ 
+      error: "Failed to create article",
+      message: "An internal server error occurred. Please try again later."
+    });
   }
 });
 
-// Add this new endpoint for incrementing views
+// Get articles with mobile-optimized pagination
+router.get("/", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+    
+    // Mobile-friendly limit (smaller for mobile)
+    const isMobile = req.headers['user-agent']?.toLowerCase().includes('mobile');
+    const actualLimit = isMobile ? Math.min(limit, 5) : limit;
+
+    const { data: articles, error } = await supabase
+      .from('articles')
+      .select(`
+        id,
+        title,
+        slug,
+        summary,
+        image,
+        created_at,
+        updated_at,
+        views,
+        featured,
+        categories(name, slug),
+        profiles(username, avatar)
+      `)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + actualLimit - 1);
+
+    if (error) throw error;
+
+    // Get total count for pagination
+    const { count } = await supabase
+      .from('articles')
+      .select('*', { count: 'exact', head: true });
+
+    return res.json({
+      success: true,
+      articles: articles || [],
+      pagination: {
+        page,
+        limit: actualLimit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / actualLimit),
+        hasNext: offset + actualLimit < (count || 0),
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    return res.status(500).json({ 
+      error: "Failed to fetch articles",
+      message: "Unable to load articles at this time"
+    });
+  }
+});
+
+// Add this new endpoint for incrementing views with mobile optimization
 router.post("/:id/view", async (req, res) => {
   try {
     const articleId = parseInt(req.params.id);
     
-    // Get the current article
-    const article = await req.app.locals.prisma.article.findUnique({
-      where: { id: articleId }
-    });
+    if (isNaN(articleId)) {
+      return res.status(400).json({ 
+        error: "Invalid article ID",
+        message: "Please provide a valid article ID"
+      });
+    }
     
-    if (!article) {
-      return res.status(404).json({ error: "Article not found" });
+    // Get the current article
+    const { data: article, error: fetchError } = await supabase
+      .from('articles')
+      .select('id, views')
+      .eq('id', articleId)
+      .single();
+    
+    if (fetchError || !article) {
+      return res.status(404).json({ 
+        error: "Article not found",
+        message: "The requested article could not be found"
+      });
     }
     
     // Increment the views count
-    const updatedArticle = await req.app.locals.prisma.article.update({
-      where: { id: articleId },
-      data: { 
-        views: (article.views || 0) + 1 
-      }
-    });
+    const { data: updatedArticle, error: updateError } = await supabase
+      .from('articles')
+      .update({ views: (article.views || 0) + 1 })
+      .eq('id', articleId)
+      .select('views')
+      .single();
     
-    return res.status(200).json({ success: true, views: updatedArticle.views });
+    if (updateError) throw updateError;
+    
+    return res.status(200).json({ 
+      success: true, 
+      views: updatedArticle.views,
+      message: "View count updated"
+    });
   } catch (error) {
     console.error("Error incrementing article views:", error);
-    return res.status(500).json({ error: "Failed to increment article views" });
+    return res.status(500).json({ 
+      error: "Failed to increment article views",
+      message: "Unable to update view count at this time"
+    });
   }
 });
 
-export default router; 
+// Get single article with mobile-optimized response
+router.get("/:slug", async (req, res) => {
+  try {
+    const { slug } = req.params;
+    
+    const { data: article, error } = await supabase
+      .from('articles')
+      .select(`
+        *,
+        categories(id, name, slug),
+        profiles(username, avatar, bio)
+      `)
+      .eq('slug', slug)
+      .single();
+
+    if (error || !article) {
+      return res.status(404).json({ 
+        error: "Article not found",
+        message: "The requested article could not be found"
+      });
+    }
+
+    return res.json({
+      success: true,
+      article
+    });
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    return res.status(500).json({ 
+      error: "Failed to fetch article",
+      message: "Unable to load the article at this time"
+    });
+  }
+});
+
+export default router;

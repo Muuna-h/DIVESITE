@@ -15,6 +15,7 @@ const Home = () => {
       initial="hidden"
       animate="visible"
       exit="exit"
+      className="overflow-x-hidden" // Prevent horizontal scroll on mobile
     >
       <Helmet>
         <title>Dive Tech - Dive Into Tomorrow's Tech</title>
@@ -22,6 +23,7 @@ const Home = () => {
         <meta property="og:title" content="Dive Tech - Dive Into Tomorrow's Tech" />
         <meta property="og:description" content="Explore the latest in tech innovations across IT, software development, hardware, emerging technologies and more." />
         <meta property="og:type" content="website" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
       </Helmet>
       
       <HeroSection />
